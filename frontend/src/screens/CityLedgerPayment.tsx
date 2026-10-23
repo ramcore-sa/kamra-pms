@@ -4,6 +4,7 @@ import { serverError } from "../lib/resource"
 import { Button } from "../components/ui/button"
 import { Sheet } from "../components/ui/sheet"
 import { fmtMoney } from "../lib/money"
+import { useT } from "../lib/i18n"
 
 // Record a company's payment against its city ledger (AR) balance. The
 // server (kamra.ledger.city_ledger_settle) decides what it clears; this
@@ -52,6 +53,7 @@ export default function CityLedgerPayment(props: {
   onClose: () => void
   onPosted: () => void
 }) {
+  const { t } = useT()
   const [acc, setAcc] = useState<Account | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [amount, setAmount] = useState("")
@@ -95,15 +97,15 @@ export default function CityLedgerPayment(props: {
   const unapplied = r2(amt - applied)
 
   const problem = (() => {
-    if (amt <= 0) return "Enter the amount received."
+    if (amt <= 0) return t("Enter the amount received.")
     if (manual) {
       for (const p of plan) {
         const it = items.find((i) => i.folio === p.folio)
         if (it && p.amount > it.outstanding + 0.005)
-          return `${it.invoice_number || it.folio} owes ${fmtMoney(it.outstanding)}.`
+          return t("{bill} owes {amount}.", { bill: it.invoice_number || it.folio, amount: fmtMoney(it.outstanding) })
       }
       if (applied > amt + 0.005)
-        return "The folios add up to more than the payment."
+        return t("The folios add up to more than the payment.")
     }
     return null
   })()
@@ -150,39 +152,39 @@ export default function CityLedgerPayment(props: {
   const footer =
     step === "form" ? (
       <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={props.onClose}>Cancel</Button>
+        <Button variant="outline" onClick={props.onClose}>{t("Cancel")}</Button>
         <Button disabled={!!problem || !acc} onClick={() => setStep("confirm")}>
-          Review payment
+          {t("Review payment")}
         </Button>
       </div>
     ) : step === "confirm" ? (
       <div className="flex justify-end gap-2">
-        <Button variant="outline" disabled={busy} onClick={() => setStep("form")}>Back</Button>
+        <Button variant="outline" disabled={busy} onClick={() => setStep("form")}>{t("Back")}</Button>
         <Button disabled={busy} onClick={() => void submit()}>
-          {busy ? "Recording…" : `Confirm ${fmtMoney(amt)}`}
+          {busy ? t("Recording…") : t("Confirm {amount}", { amount: fmtMoney(amt) })}
         </Button>
       </div>
     ) : (
       <div className="flex justify-end">
-        <Button onClick={props.onClose}>Done</Button>
+        <Button onClick={props.onClose}>{t("Done")}</Button>
       </div>
     )
 
   return (
     <Sheet
-      title="Record company payment"
-      description={acc ? `${acc.company} · city ledger` : "City ledger"}
+      title={t("Record company payment")}
+      description={acc ? t("{company} · city ledger", { company: acc.company }) : t("City ledger")}
       onClose={props.onClose}
       footer={footer}
       wide
     >
       {err ? <p className="mb-3 text-sm text-rose-600">{err}</p> : null}
       {!acc ? (
-        <p className="text-sm text-zinc-400">Loading account…</p>
+        <p className="text-sm text-zinc-400">{t("Loading account…")}</p>
       ) : step === "done" && result ? (
         <div className="space-y-3 text-sm">
           <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800">
-            Payment recorded. Account balance is now {fmtMoney(result.balance)}.
+            {t("Payment recorded. Account balance is now {amount}.", { amount: fmtMoney(result.balance) })}
           </p>
           <ul className="space-y-1">
             {result.applied.map((a) => (
@@ -194,20 +196,26 @@ export default function CityLedgerPayment(props: {
           </ul>
           {result.unapplied > 0 ? (
             <p className="text-zinc-500">
-              {fmtMoney(result.unapplied)} kept as unapplied credit. It settles the
-              company's next city-ledger bill.
+              {t("{amount} kept as unapplied credit. It settles the company's next city-ledger bill.", {
+                amount: fmtMoney(result.unapplied),
+              })}
             </p>
           ) : null}
         </div>
       ) : step === "confirm" ? (
         <div className="space-y-4 text-sm">
           <p>
-            Record <b>{fmtMoney(amt)}</b> from <b>{acc.company}</b> by {mode}
-            {reference.trim() ? ` (ref ${reference.trim()})` : ""}.
+            {reference.trim()
+              ? t("Record {amount} from {company} by {mode} (ref {ref}).", {
+                  amount: fmtMoney(amt), company: acc.company, mode: t(mode), ref: reference.trim(),
+                })
+              : t("Record {amount} from {company} by {mode}.", {
+                  amount: fmtMoney(amt), company: acc.company, mode: t(mode),
+                })}
           </p>
           <div className="rounded-lg border border-zinc-200">
             <div className="border-b border-zinc-100 px-4 py-2 text-xs uppercase text-zinc-400">
-              {manual ? "Applied to the folios you picked" : "Applied oldest bill first"}
+              {manual ? t("Applied to the folios you picked") : t("Applied oldest bill first")}
             </div>
             <ul className="divide-y divide-zinc-100">
               {plan.map((p) => (
@@ -217,27 +225,28 @@ export default function CityLedgerPayment(props: {
                 </li>
               ))}
               {!plan.length ? (
-                <li className="px-4 py-2 text-zinc-400">No folio. All of it stays as credit.</li>
+                <li className="px-4 py-2 text-zinc-400">{t("No folio. All of it stays as credit.")}</li>
               ) : null}
             </ul>
           </div>
           {unapplied > 0 ? (
             <p className="text-amber-700">
-              {fmtMoney(unapplied)} is more than the bills it pays. It stays on the
-              account as unapplied credit.
+              {t("{amount} is more than the bills it pays. It stays on the account as unapplied credit.", {
+                amount: fmtMoney(unapplied),
+              })}
             </p>
           ) : null}
           <p className="text-zinc-500">
-            Balance after: {fmtMoney(r2(acc.balance - amt))}
+            {t("Balance after: {amount}", { amount: fmtMoney(r2(acc.balance - amt)) })}
           </p>
         </div>
       ) : (
         <div className="space-y-5">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat label="Balance" value={acc.balance} />
-            <Stat label="Open bills" value={acc.open_balance} />
-            <Stat label="Unapplied credit" value={acc.unapplied_credit} />
-            <Stat label="Over 60 days" value={acc.b60 + acc.b90 + acc.b90p} />
+            <Stat label={t("Balance")} value={acc.balance} />
+            <Stat label={t("Open bills")} value={acc.open_balance} />
+            <Stat label={t("Unapplied credit")} value={acc.unapplied_credit} />
+            <Stat label={t("Over 60 days")} value={acc.b60 + acc.b90 + acc.b90p} />
           </div>
           <div className="grid grid-cols-4 overflow-hidden rounded-lg border border-zinc-200 text-center text-xs">
             {([
@@ -255,7 +264,7 @@ export default function CityLedgerPayment(props: {
 
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="text-sm">
-              <span className="mb-1 block text-zinc-500">Amount received</span>
+              <span className="mb-1 block text-zinc-500">{t("Amount received")}</span>
               <input
                 type="number"
                 min="0"
@@ -268,17 +277,17 @@ export default function CityLedgerPayment(props: {
               />
             </label>
             <label className="text-sm">
-              <span className="mb-1 block text-zinc-500">Mode</span>
+              <span className="mb-1 block text-zinc-500">{t("Mode")}</span>
               <select
                 className="w-full rounded-lg border border-zinc-300 px-2 py-1.5"
                 value={mode}
                 onChange={(e) => setMode(e.target.value)}
               >
-                {MODES.map((m) => <option key={m}>{m}</option>)}
+                {MODES.map((m) => <option key={m} value={m}>{t(m)}</option>)}
               </select>
             </label>
             <label className="text-sm">
-              <span className="mb-1 block text-zinc-500">Reference (UTR / cheque no.)</span>
+              <span className="mb-1 block text-zinc-500">{t("Reference (UTR / cheque no.)")}</span>
               <input
                 className="w-full rounded-lg border border-zinc-300 px-2 py-1.5"
                 value={reference}
@@ -291,11 +300,11 @@ export default function CityLedgerPayment(props: {
           <div className="flex flex-wrap gap-2 text-sm" role="radiogroup">
             <label className="flex items-center gap-1.5">
               <input type="radio" checked={!manual} onChange={() => setManual(false)} />
-              Allocate oldest first
+              {t("Allocate oldest first")}
             </label>
             <label className="flex items-center gap-1.5">
               <input type="radio" checked={manual} onChange={() => setManual(true)} />
-              Pick folios
+              {t("Pick folios")}
             </label>
           </div>
 
@@ -304,11 +313,11 @@ export default function CityLedgerPayment(props: {
               <thead className="text-xs uppercase text-zinc-400">
                 <tr>
                   {manual ? <th className="py-2 pr-2" /> : null}
-                  <th className="py-2 pr-3">Bill</th>
-                  <th className="py-2 pr-3">Guest</th>
-                  <th className="py-2 pr-3">Billed on</th>
-                  <th className="py-2 pr-3 text-right">Owed</th>
-                  <th className="py-2 text-right">This payment</th>
+                  <th className="py-2 pr-3">{t("Bill")}</th>
+                  <th className="py-2 pr-3">{t("Guest")}</th>
+                  <th className="py-2 pr-3">{t("Billed on")}</th>
+                  <th className="py-2 pr-3 text-right">{t("Owed")}</th>
+                  <th className="py-2 text-right">{t("This payment")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -320,7 +329,7 @@ export default function CityLedgerPayment(props: {
                       {manual ? (
                         <td className="py-2 pr-2">
                           <input type="checkbox" checked={picked} onChange={() => toggle(it)}
-                            aria-label={`Pay ${it.invoice_number || it.folio}`} />
+                            aria-label={t("Pay {bill}", { bill: it.invoice_number || it.folio })} />
                         </td>
                       ) : null}
                       <td className="py-2 pr-3 font-mono text-xs">{it.invoice_number || it.folio}</td>
@@ -346,7 +355,7 @@ export default function CityLedgerPayment(props: {
                 {!items.length ? (
                   <tr>
                     <td colSpan={manual ? 6 : 5} className="py-6 text-center text-zinc-400">
-                      No open bills. A payment now is kept as credit.
+                      {t("No open bills. A payment now is kept as credit.")}
                     </td>
                   </tr>
                 ) : null}
@@ -356,13 +365,16 @@ export default function CityLedgerPayment(props: {
 
           <p className={`text-sm ${problem ? "text-rose-600" : "text-zinc-500"}`}>
             {problem ??
-              `Applies ${fmtMoney(applied)}` +
-                (unapplied > 0 ? ` · ${fmtMoney(unapplied)} stays as unapplied credit` : "")}
+              (unapplied > 0
+                ? t("Applies {applied} · {unapplied} stays as unapplied credit", {
+                    applied: fmtMoney(applied), unapplied: fmtMoney(unapplied),
+                  })
+                : t("Applies {applied}", { applied: fmtMoney(applied) }))}
           </p>
 
           {acc.payments.length ? (
             <div>
-              <p className="mb-1 text-xs uppercase text-zinc-400">Recent payments</p>
+              <p className="mb-1 text-xs uppercase text-zinc-400">{t("Recent payments")}</p>
               <ul className="space-y-0.5 text-sm text-zinc-600">
                 {acc.payments.map((p) => (
                   <li key={p.name} className="flex justify-between">

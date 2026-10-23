@@ -143,7 +143,7 @@ export default function BookingRequests({
                     {r.room_type_name} · {r.check_in_date} → {r.check_out_date} ·{" "}
                     {t("{n} night{s}", { n: r.nights, s: r.nights === 1 ? "" : "s" })} ·{" "}
                     {t("{n} ad", { n: r.adults })}
-                    {r.children ? ` + ${r.children} ch` : ""}
+                    {r.children ? t(" + {n} ch", { n: r.children }) : ""}
                     {Number(r.amount_after_tax) > 0 &&
                       ` · ${cur()}${money0(Number(r.amount_after_tax))}`}
                   </div>

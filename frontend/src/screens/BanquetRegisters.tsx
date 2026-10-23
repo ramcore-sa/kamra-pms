@@ -12,6 +12,7 @@ import { Download, Printer, ScrollText } from "lucide-react"
 
 import { banquet, type BanquetRegister, type RegisterRollup } from "../lib/api"
 import { serverError } from "../lib/resource"
+import { useT } from "../lib/i18n"
 import { Button } from "../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import {
@@ -47,6 +48,7 @@ function monthBounds(iso: string) {
 }
 
 export default function BanquetRegisters() {
+  const { t } = useT()
   const navigate = useNavigate()
   const [defaultFrom, defaultTo] = useMemo(() => monthBounds(today()), [])
   const [from, setFrom] = useState(defaultFrom)
@@ -94,11 +96,11 @@ export default function BanquetRegisters() {
           <CardTitle>
             <span className="inline-flex items-center gap-1.5">
               <ScrollText className="size-4" />
-              Banquet registers
+              {t("Banquet registers")}
             </span>
           </CardTitle>
           <p className="mt-0.5 text-xs text-zinc-400">
-            Pick the period once — every book is a tab away.
+            {t("Pick the period once — every book is a tab away.")}
           </p>
         </div>
         <div className="flex flex-wrap items-end gap-2">
@@ -120,11 +122,11 @@ export default function BanquetRegisters() {
           </Field>
           <Button variant="outline" onClick={exportCsv} disabled={!data?.rows.length}>
             <Download className="size-4" />
-            CSV
+            {t("CSV")}
           </Button>
           <Button variant="outline" onClick={() => window.print()}>
             <Printer className="size-4" />
-            Print
+            {t("Print")}
           </Button>
         </div>
       </CardHeader>
@@ -136,7 +138,7 @@ export default function BanquetRegisters() {
             <button
               key={id}
               onClick={() => setReg(id)}
-              title={blurb}
+              title={t(blurb)}
               className={
                 "-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors " +
                 (reg === id
@@ -144,7 +146,7 @@ export default function BanquetRegisters() {
                   : "border-transparent text-zinc-500 hover:text-zinc-800")
               }
             >
-              {label}
+              {t(label)}
             </button>
           ))}
         </div>
@@ -153,14 +155,14 @@ export default function BanquetRegisters() {
         <div className="mb-3 hidden print:block">
           <h2 className="text-base font-semibold">{data?.title}</h2>
           <p className="text-xs text-zinc-500">
-            {from} to {to}
+            {t("{from} to {to}", { from, to })}
           </p>
         </div>
 
         {!data ? (
-          <Empty>Loading…</Empty>
+          <Empty>{t("Loading…")}</Empty>
         ) : data.rows.length === 0 ? (
-          <Empty>Nothing in this period.</Empty>
+          <Empty>{t("Nothing in this period.")}</Empty>
         ) : (
           <>
             <Totals data={data} />
@@ -182,23 +184,24 @@ export default function BanquetRegisters() {
 }
 
 function Totals({ data }: { data: BanquetRegister }) {
-  const t = data.totals
+  const { t } = useT()
+  const tot = data.totals
   const cells: [string, string][] = [
-    ["Rows", String(t.count)],
-    ...(t.pax !== undefined ? ([["Pax", String(t.pax)]] as [string, string][]) : []),
-    ["Value", inr(t.value)],
-    ...(t.received !== undefined
-      ? ([["Received", inr(t.received)]] as [string, string][])
+    ["Rows", String(tot.count)],
+    ...(tot.pax !== undefined ? ([["Pax", String(tot.pax)]] as [string, string][]) : []),
+    ["Value", inr(tot.value)],
+    ...(tot.received !== undefined
+      ? ([["Received", inr(tot.received)]] as [string, string][])
       : []),
-    ...(t.outstanding !== undefined
-      ? ([["Outstanding", inr(t.outstanding)]] as [string, string][])
+    ...(tot.outstanding !== undefined
+      ? ([["Outstanding", inr(tot.outstanding)]] as [string, string][])
       : []),
   ]
   return (
     <div className="mb-4 flex flex-wrap gap-x-8 gap-y-2 rounded-xl bg-zinc-50 px-4 py-3">
       {cells.map(([k, v]) => (
         <div key={k}>
-          <p className="text-[11px] uppercase tracking-wider text-zinc-400">{k}</p>
+          <p className="text-[11px] uppercase tracking-wider text-zinc-400">{t(k)}</p>
           <p className="text-lg font-semibold tabular-nums">{v}</p>
         </div>
       ))}
@@ -213,21 +216,22 @@ function FunctionList({
   data: BanquetRegister
   onOpen: (name: string) => void
 }) {
+  const { t } = useT()
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-zinc-200 text-left text-xs uppercase tracking-wider text-zinc-400">
-            <th className="py-2 pr-3 font-medium">Ref</th>
-            <th className="py-2 pr-3 font-medium">Date</th>
-            <th className="py-2 pr-3 font-medium">Customer</th>
-            <th className="py-2 pr-3 font-medium">Hall / session</th>
-            <th className="py-2 pr-3 font-medium">Event</th>
-            <th className="py-2 pr-3 text-right font-medium">Pax</th>
-            <th className="py-2 pr-3 text-right font-medium">Rate/pax</th>
-            <th className="py-2 pr-3 text-right font-medium">Value</th>
-            <th className="py-2 pr-3 text-right font-medium">Due</th>
-            <th className="py-2 font-medium">Status</th>
+            <th className="py-2 pr-3 font-medium">{t("Ref")}</th>
+            <th className="py-2 pr-3 font-medium">{t("Date")}</th>
+            <th className="py-2 pr-3 font-medium">{t("Customer")}</th>
+            <th className="py-2 pr-3 font-medium">{t("Hall / session")}</th>
+            <th className="py-2 pr-3 font-medium">{t("Event")}</th>
+            <th className="py-2 pr-3 text-right font-medium">{t("Pax")}</th>
+            <th className="py-2 pr-3 text-right font-medium">{t("Rate/pax")}</th>
+            <th className="py-2 pr-3 text-right font-medium">{t("Value")}</th>
+            <th className="py-2 pr-3 text-right font-medium">{t("Due")}</th>
+            <th className="py-2 font-medium">{t("Status")}</th>
           </tr>
         </thead>
         <tbody>
@@ -251,10 +255,10 @@ function FunctionList({
               </td>
               <td className="py-1.5 pr-3 text-zinc-600">
                 {r.venue}
-                <span className="text-zinc-400"> · {r.session}</span>
+                <span className="text-zinc-400"> · {t(r.session)}</span>
               </td>
               <td className="py-1.5 pr-3 text-zinc-600">
-                {r.event_name || r.event_type}
+                {r.event_name || t(r.event_type)}
               </td>
               <td className="py-1.5 pr-3 text-right tabular-nums">
                 {r.pax || "-"}
@@ -285,19 +289,20 @@ function FunctionList({
 }
 
 function CashBook({ data }: { data: BanquetRegister }) {
+  const { t } = useT()
   return (
     <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-zinc-200 text-left text-xs uppercase tracking-wider text-zinc-400">
-              <th className="py-2 pr-3 font-medium">Date</th>
-              <th className="py-2 pr-3 font-medium">Customer</th>
-              <th className="py-2 pr-3 font-medium">Hall</th>
-              <th className="py-2 pr-3 font-medium">Kind</th>
-              <th className="py-2 pr-3 font-medium">Mode</th>
-              <th className="py-2 pr-3 font-medium">Reference</th>
-              <th className="py-2 text-right font-medium">Amount</th>
+              <th className="py-2 pr-3 font-medium">{t("Date")}</th>
+              <th className="py-2 pr-3 font-medium">{t("Customer")}</th>
+              <th className="py-2 pr-3 font-medium">{t("Hall")}</th>
+              <th className="py-2 pr-3 font-medium">{t("Kind")}</th>
+              <th className="py-2 pr-3 font-medium">{t("Mode")}</th>
+              <th className="py-2 pr-3 font-medium">{t("Reference")}</th>
+              <th className="py-2 text-right font-medium">{t("Amount")}</th>
             </tr>
           </thead>
           <tbody>
@@ -308,8 +313,8 @@ function CashBook({ data }: { data: BanquetRegister }) {
                 </td>
                 <td className="py-1.5 pr-3">{r.customer_name}</td>
                 <td className="py-1.5 pr-3 text-zinc-500">{r.venue}</td>
-                <td className="py-1.5 pr-3">{r.kind}</td>
-                <td className="py-1.5 pr-3 text-zinc-500">{r.mode}</td>
+                <td className="py-1.5 pr-3">{r.kind ? t(r.kind) : ""}</td>
+                <td className="py-1.5 pr-3 text-zinc-500">{r.mode ? t(r.mode) : ""}</td>
                 <td className="py-1.5 pr-3 text-zinc-400">{r.reference}</td>
                 <td
                   className={
@@ -327,7 +332,7 @@ function CashBook({ data }: { data: BanquetRegister }) {
       {data.by_mode && (
         <div>
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-            By mode
+            {t("By mode")}
           </h3>
           <ul className="space-y-1.5">
             {data.by_mode.map((m) => (
@@ -335,7 +340,7 @@ function CashBook({ data }: { data: BanquetRegister }) {
                 key={m.mode}
                 className="flex justify-between rounded-lg bg-zinc-50 px-3 py-2 text-sm"
               >
-                <span>{m.mode}</span>
+                <span>{t(m.mode)}</span>
                 <span className="font-medium tabular-nums">{inr(m.amount)}</span>
               </li>
             ))}
@@ -347,6 +352,7 @@ function CashBook({ data }: { data: BanquetRegister }) {
 }
 
 function SalesSummary({ data }: { data: BanquetRegister }) {
+  const { t } = useT()
   const blocks: [string, RegisterRollup[] | undefined][] = [
     ["By hall", data.by_venue],
     ["By event type", data.by_event_type],
@@ -359,7 +365,7 @@ function SalesSummary({ data }: { data: BanquetRegister }) {
         rows?.length ? (
           <div key={title}>
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-              {title}
+              {t(title)}
             </h3>
             <Bars rows={rows} />
           </div>
@@ -370,17 +376,21 @@ function SalesSummary({ data }: { data: BanquetRegister }) {
 }
 
 function Bars({ rows }: { rows: RegisterRollup[] }) {
+  const { t } = useT()
   const peak = Math.max(1, ...rows.map((r) => r.value))
   return (
     <ul className="space-y-2">
       {rows.map((r) => (
         <li key={r.key}>
           <div className="flex justify-between text-sm">
-            <span className="truncate text-zinc-600">{r.key}</span>
+            {/* The key is a hall name, an event type, a session or a source; the
+                last three are fixed English values the catalogue knows, and a
+                hall name passes through unchanged. */}
+            <span className="truncate text-zinc-600">{t(r.key)}</span>
             <span className="shrink-0 tabular-nums">
               {inr(r.value)}{" "}
               <span className="text-zinc-400">
-                ({r.count} · {r.pax} pax)
+                ({r.count} · {t("{n} pax", { n: r.pax })})
               </span>
             </span>
           </div>

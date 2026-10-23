@@ -217,6 +217,29 @@ def site_info():
 	return {"demo_mode": frappe.db.get_default("kamra_demo_mode") == "1"}
 
 
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+def ui_translations(lang: str = "en") -> dict[str, str]:
+	"""The site's translation catalogue for one language, for the SPA.
+
+	The SPA ships its own dictionary (frontend/src/i18n/locales), but that is
+	frozen at build time: a string added after the last catalogue pass, or
+	translated by an override app installed on the site, never reached it.
+	This hands the SPA the same merged catalogue the desk uses - every app's
+	translations plus the Translation doctype - so a site can supply the
+	words the bundle lacks without rebuilding the front-end.
+
+	Guest-readable because the public booking pages are translated too, and
+	the catalogue is no more private than the desk bundles that carry it.
+	`lang` must be a real Language: get_all_translations caches per code, and
+	an arbitrary code would let anyone fill the cache with empty entries.
+	"""
+	if not lang or lang == "en" or not frappe.db.exists("Language", lang):
+		return {}
+	from frappe.translate import get_all_translations
+
+	return get_all_translations(lang)
+
+
 @frappe.whitelist(allow_guest=True)
 def default_property():
 	"""Which Property the public booking engine (``/book``) should show.

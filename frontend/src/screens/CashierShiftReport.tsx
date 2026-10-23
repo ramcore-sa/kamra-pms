@@ -3,12 +3,14 @@ import { useSearchParams } from "react-router-dom"
 import { call, getCurrentProperty } from "../lib/api"
 import { serverError } from "../lib/resource"
 import { moneyLocale } from "../lib/money"
+import { useT } from "../lib/i18n"
 
 const inr = (n: unknown) =>
   Number(n ?? 0).toLocaleString(moneyLocale(), { maximumFractionDigits: 0 })
 
 export default function CashierShiftReport() {
   const [params] = useSearchParams()
+  const { t } = useT()
   const [date, setDate] = useState("")
   const [report, setReport] = useState<{
     business_date: string
@@ -51,9 +53,9 @@ export default function CashierShiftReport() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-            Cashier
+            {t("Cashier")}
           </p>
-          <h1 className="text-2xl font-semibold">Shift Report</h1>
+          <h1 className="text-2xl font-semibold">{t("Shift Report")}</h1>
         </div>
         <input
           type="date"
@@ -68,12 +70,12 @@ export default function CashierShiftReport() {
         <table className="w-full text-left text-sm">
           <thead className="border-b text-xs uppercase text-zinc-400">
             <tr>
-              <th className="px-3 py-2">Cashier</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2">Cash</th>
-              <th className="px-3 py-2">Card</th>
-              <th className="px-3 py-2">UPI</th>
-              <th className="px-3 py-2">Variance</th>
+              <th className="px-3 py-2">{t("Cashier")}</th>
+              <th className="px-3 py-2">{t("Status")}</th>
+              <th className="px-3 py-2">{t("Cash")}</th>
+              <th className="px-3 py-2">{t("Card")}</th>
+              <th className="px-3 py-2">{t("UPI")}</th>
+              <th className="px-3 py-2">{t("Variance")}</th>
             </tr>
           </thead>
           <tbody>
@@ -82,7 +84,7 @@ export default function CashierShiftReport() {
                 <td className="px-3 py-2">
                   {String(s.cashier_id || s.user)}
                 </td>
-                <td className="px-3 py-2">{String(s.status)}</td>
+                <td className="px-3 py-2">{t(String(s.status))}</td>
                 <td className="px-3 py-2 tabular-nums">{inr(s.system_cash)}</td>
                 <td className="px-3 py-2 tabular-nums">{inr(s.system_card)}</td>
                 <td className="px-3 py-2 tabular-nums">{inr(s.system_upi)}</td>
@@ -95,23 +97,23 @@ export default function CashierShiftReport() {
 
       <div>
         <h2 className="mb-2 text-sm font-semibold text-zinc-700">
-          Journal by kind / mode
+          {t("Journal by kind / mode")}
         </h2>
         <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
           <table className="w-full text-left text-sm">
             <thead className="border-b text-xs uppercase text-zinc-400">
               <tr>
-                <th className="px-3 py-2">Kind</th>
-                <th className="px-3 py-2">Mode</th>
-                <th className="px-3 py-2">Txns</th>
-                <th className="px-3 py-2">Total</th>
+                <th className="px-3 py-2">{t("Kind")}</th>
+                <th className="px-3 py-2">{t("Mode")}</th>
+                <th className="px-3 py-2">{t("Txns")}</th>
+                <th className="px-3 py-2">{t("Total")}</th>
               </tr>
             </thead>
             <tbody>
               {(report?.journal || []).map((j, i) => (
                 <tr key={i} className="border-t">
-                  <td className="px-3 py-2">{j.kind}</td>
-                  <td className="px-3 py-2">{j.mode}</td>
+                  <td className="px-3 py-2">{t(j.kind)}</td>
+                  <td className="px-3 py-2">{t(j.mode)}</td>
                   <td className="px-3 py-2">{j.txns}</td>
                   <td className="px-3 py-2 tabular-nums">{inr(j.total)}</td>
                 </tr>

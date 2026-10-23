@@ -213,7 +213,7 @@ export default function Marketplace() {
                         setPhone("")
                       }}
                     >
-                      Connect
+                      {t("Connect")}
                     </Button>
                   )}
                   {isKoala && c.status === "connected" && c.connection && (
@@ -237,7 +237,7 @@ export default function Marketplace() {
                       {!result ? (
                         <>
                           <label className="block text-xs font-medium text-zinc-600">
-                            {c.channel} number
+                            {t("{channel} number", { channel: c.channel ?? "" })}
                           </label>
                           <input
                             className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm"
@@ -282,8 +282,7 @@ export default function Marketplace() {
                             </div>
                           </div>
                           <p className="text-zinc-400">
-                            {result.signature_note} Goes live once HeyKoala
-                            confirms.
+                            {result.signature_note} {t("Goes live once HeyKoala confirms.")}
                           </p>
                           <Button
                             variant="ghost"

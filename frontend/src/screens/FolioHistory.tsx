@@ -5,6 +5,7 @@ import { serverError } from "../lib/resource"
 import { Button } from "../components/ui/button"
 import { Badge } from "../components/ui/badge"
 import { moneyLocale } from "../lib/money"
+import { useT } from "../lib/i18n"
 
 const inr = (n: unknown) =>
   Number(n ?? 0).toLocaleString(moneyLocale(), { maximumFractionDigits: 0 })
@@ -22,6 +23,7 @@ type FolioRow = {
 }
 
 export default function FolioHistory() {
+  const { t } = useT()
   const [q, setQ] = useState("")
   const [status, setStatus] = useState("")
   const [rows, setRows] = useState<FolioRow[]>([])
@@ -74,14 +76,14 @@ export default function FolioHistory() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-            Billing
+            {t("Billing")}
           </p>
-          <h1 className="text-2xl font-semibold">Folio History</h1>
+          <h1 className="text-2xl font-semibold">{t("Folio History")}</h1>
         </div>
         <div className="flex flex-wrap gap-2">
           <input
             className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm"
-            placeholder="Search guest / invoice"
+            placeholder={t("Search guest / invoice")}
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
@@ -90,16 +92,16 @@ export default function FolioHistory() {
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
-            <option value="">All</option>
-            <option value="Open">Open</option>
-            <option value="Closed">Closed</option>
+            <option value="">{t("All")}</option>
+            <option value="Open">{t("Open")}</option>
+            <option value="Closed">{t("Closed")}</option>
           </select>
           <Button
             variant="outline"
             disabled={!selected.length || busy}
             onClick={() => void batchPrint()}
           >
-            Batch print ({selected.length})
+            {t("Batch print ({n})", { n: selected.length })}
           </Button>
         </div>
       </div>
@@ -109,12 +111,12 @@ export default function FolioHistory() {
           <thead className="border-b text-xs uppercase text-zinc-400">
             <tr>
               <th className="px-3 py-2" />
-              <th className="px-3 py-2">Guest</th>
-              <th className="px-3 py-2">Invoice</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2">Total</th>
-              <th className="px-3 py-2">Balance</th>
-              <th className="px-3 py-2">Reprints</th>
+              <th className="px-3 py-2">{t("Guest")}</th>
+              <th className="px-3 py-2">{t("Invoice")}</th>
+              <th className="px-3 py-2">{t("Status")}</th>
+              <th className="px-3 py-2">{t("Total")}</th>
+              <th className="px-3 py-2">{t("Balance")}</th>
+              <th className="px-3 py-2">{t("Reprints")}</th>
             </tr>
           </thead>
           <tbody>
@@ -141,7 +143,7 @@ export default function FolioHistory() {
                 </td>
                 <td className="px-3 py-2">
                   <Badge tone={r.status === "Open" ? "green" : "zinc"}>
-                    {r.status}
+                    {t(r.status)}
                   </Badge>
                 </td>
                 <td className="px-3 py-2 tabular-nums">{inr(r.grand_total)}</td>

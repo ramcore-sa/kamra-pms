@@ -394,15 +394,18 @@ export default function FolioView() {
                   navigator.clipboard.writeText(r.url)
                 })
               }
-              title={`Creates a payment link for the balance and copies it - send to the ${
-                data.stay.contact_preference === "Booker" &&
-                data.stay.booked_by_name
-                  ? `booker, ${data.stay.booked_by_name}${data.stay.booked_by_phone ? ` (${data.stay.booked_by_phone})` : ""}`
-                  : data.stay.contact_preference === "Both" &&
-                      data.stay.booked_by_name
-                    ? `guest and the booker (${data.stay.booked_by_name})`
-                    : "guest"
-              }`}
+              title={
+                data.stay.contact_preference === "Booker" && data.stay.booked_by_name
+                  ? t("Creates a payment link for the balance and copies it - send to the booker, {name}{phone}", {
+                      name: data.stay.booked_by_name,
+                      phone: data.stay.booked_by_phone ? ` (${data.stay.booked_by_phone})` : "",
+                    })
+                  : data.stay.contact_preference === "Both" && data.stay.booked_by_name
+                    ? t("Creates a payment link for the balance and copies it - send to the guest and the booker ({name})", {
+                        name: data.stay.booked_by_name,
+                      })
+                    : t("Creates a payment link for the balance and copies it - send to the guest")
+              }
             >
               {t("Payment link")}
             </Button>
@@ -487,7 +490,7 @@ export default function FolioView() {
               <Button
                 variant="outline"
                 disabled={busy}
-                title="Interim invoice: freeze this paid folio and keep the stay running on a fresh one - for long stays settled every few days"
+                title={t("Interim invoice: freeze this paid folio and keep the stay running on a fresh one - for long stays settled every few days")}
                 onClick={() =>
                   act(async () => {
                     const r = await call<{ new_folio: string }>(
@@ -1164,7 +1167,7 @@ export default function FolioView() {
                     value={refund.amount} onChange={(e) => setRefund({ ...refund, amount: e.target.value })} />
                   <select className={inputCls} value={refund.mode}
                     onChange={(e) => setRefund({ ...refund, mode: e.target.value })}>
-                    {PAY_MODES.map((m) => <option key={m}>{m}</option>)}
+                    {PAY_MODES.map((m) => <option key={m} value={m}>{t(m)}</option>)}
                   </select>
                   <input className={`${inputCls} flex-1`} placeholder={t("Reason (required — e.g. deposit returned)")}
                     value={refund.reason} onChange={(e) => setRefund({ ...refund, reason: e.target.value })} />
@@ -1227,7 +1230,7 @@ export default function FolioView() {
                 }
               >
                 {CHARGE_TYPES.map((ct) => (
-                  <option key={ct}>{t(ct)}</option>
+                  <option key={ct} value={ct}>{t(ct)}</option>
                 ))}
               </select>
               <input
@@ -1357,7 +1360,7 @@ export default function FolioView() {
                 onChange={(e) => setPayment({ ...payment, kind: e.target.value })}
               >
                 {["Payment", "Advance", "Security Deposit"].map((k) => (
-                  <option key={k}>{t(k)}</option>
+                  <option key={k} value={k}>{t(k)}</option>
                 ))}
               </select>
               <select
@@ -1366,7 +1369,7 @@ export default function FolioView() {
                 onChange={(e) => setPayment({ ...payment, mode: e.target.value })}
               >
                 {PAY_MODES.map((m) => (
-                  <option key={m}>{t(m)}</option>
+                  <option key={m} value={m}>{t(m)}</option>
                 ))}
               </select>
               <input

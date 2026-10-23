@@ -5,6 +5,7 @@
 import type { ReactNode } from "react"
 import type { FunctionStatus } from "../../lib/api"
 import { cur, locale, moneyLocale } from "../../lib/money"
+import { useT } from "../../lib/i18n"
 
 export const inr = (n: unknown) =>
   cur() +
@@ -205,6 +206,7 @@ export function StatusPill({
   status: FunctionStatus
   className?: string
 }) {
+  const { t } = useT()
   return (
     <span
       className={
@@ -215,7 +217,7 @@ export function StatusPill({
         className
       }
     >
-      {status}
+      {t(status)}
     </span>
   )
 }
@@ -231,13 +233,17 @@ export function Field({
   children: ReactNode
   className?: string
 }) {
+  // The primitives translate their own label, hint and option text so every
+  // banquet screen that passes English gets Arabic; the status and option
+  // VALUES stay English because the server compares them.
+  const { t } = useT()
   return (
     <label className={"block " + className}>
       <span className="mb-1 block text-xs font-medium text-zinc-500">
-        {label}
+        {t(label)}
       </span>
       {children}
-      {hint && <span className="mt-1 block text-[11px] text-zinc-400">{hint}</span>}
+      {hint && <span className="mt-1 block text-[11px] text-zinc-400">{t(hint)}</span>}
     </label>
   )
 }
@@ -253,6 +259,7 @@ export function Select({
   options: readonly string[]
   className?: string
 }) {
+  const { t } = useT()
   return (
     <select
       className={inputCls + " " + className}
@@ -261,7 +268,7 @@ export function Select({
     >
       {options.map((o) => (
         <option key={o} value={o}>
-          {o}
+          {t(o)}
         </option>
       ))}
     </select>
@@ -279,10 +286,11 @@ export function Stat({
   sub?: ReactNode
   tone?: string
 }) {
+  const { t } = useT()
   return (
     <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
       <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">
-        {label}
+        {t(label)}
       </p>
       <p className={"mt-1 text-xl font-semibold tabular-nums " + tone}>{value}</p>
       {sub && <p className="mt-0.5 text-xs text-zinc-400">{sub}</p>}

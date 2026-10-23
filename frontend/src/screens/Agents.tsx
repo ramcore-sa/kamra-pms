@@ -21,6 +21,7 @@ import {
 } from "../components/ui/card"
 import { serverError } from "../lib/resource"
 import { moneyLocale } from "../lib/money"
+import { useT } from "../lib/i18n"
 
 
 
@@ -34,6 +35,7 @@ const statusTone: Record<string, "zinc" | "sky" | "amber" | "rose" | "green"> = 
 }
 
 export default function Agents() {
+  const { t } = useT()
   const property = getCurrentProperty()
   const [panel, setPanel] = useState<"none" | "connect">("none")
 
@@ -43,11 +45,10 @@ export default function Agents() {
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <Sparkles className="size-5 text-brand-600" aria-hidden />
-            <h1 className="text-xl font-semibold tracking-tight">Kamra Agent</h1>
+            <h1 className="text-xl font-semibold tracking-tight">{t("Kamra Agent")}</h1>
           </div>
           <p className="mt-0.5 text-sm text-zinc-500">
-            Chat here, or connect Claude. Either way it acts as you, within
-            your role.
+            {t("Chat here, or connect Claude. Either way it acts as you, within your role.")}
           </p>
         </div>
         <div className="ml-auto flex shrink-0 items-center gap-2">
@@ -57,14 +58,14 @@ export default function Agents() {
               className="flex items-center gap-1.5 rounded-full bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
             >
               <MessageSquare className="size-4" aria-hidden />
-              Back to chat
+              {t("Back to chat")}
             </button>
           )}
           <button
             onClick={() =>
               setPanel((p) => (p === "connect" ? "none" : "connect"))
             }
-            title="Open Claude and connect this hotel over MCP — scoped to your role"
+            title={t("Open Claude and connect this hotel over MCP — scoped to your role")}
             className={
               "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm " +
               (panel === "connect"
@@ -73,7 +74,7 @@ export default function Agents() {
             }
           >
             <Plug className="size-4" aria-hidden />
-            Connect your AI
+            {t("Connect your AI")}
           </button>
         </div>
       </header>
@@ -85,10 +86,11 @@ export default function Agents() {
 }
 
 function LoadingRow() {
+  const { t } = useT()
   return (
     <p className="py-10 text-center text-sm text-zinc-400">
       <Loader2 className="mr-2 inline size-4 animate-spin" aria-hidden />
-      Loading…
+      {t("Loading…")}
     </p>
   )
 }
@@ -129,6 +131,7 @@ const fmtWhen = (d: string) =>
   })
 
 export function ActivityTab({ property }: { property: string }) {
+  const { t } = useT()
   const [rows, setRows] = useState<ActivityRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -183,15 +186,14 @@ export function ActivityTab({ property }: { property: string }) {
             setPage(0)
           }}
           className="rounded-lg border border-zinc-300 bg-white px-2.5 py-1.5 text-sm"
-          aria-label="Filter by who acted"
+          aria-label={t("Filter by who acted")}
         >
-          <option value="">Everyone</option>
-          <option value="human">People only</option>
-          <option value="agent">AI only</option>
+          <option value="">{t("Everyone")}</option>
+          <option value="human">{t("People only")}</option>
+          <option value="agent">{t("AI only")}</option>
         </select>
         <p className="text-xs text-zinc-400">
-          Every action on the property, newest first - who did it and what
-          changed.
+          {t("Every action on the property, newest first - who did it and what changed.")}
         </p>
       </div>
 
@@ -204,18 +206,20 @@ export function ActivityTab({ property }: { property: string }) {
         <LoadingRow />
       ) : rows.length === 0 ? (
         <p className="py-8 text-center text-sm text-zinc-400">
-          Nothing logged yet.
+          {t("Nothing logged yet.")}
         </p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-200 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                <th className="px-3 py-2">When</th>
-                <th className="px-3 py-2">Who</th>
-                <th className="px-3 py-2">What</th>
-                <th className="px-3 py-2">On</th>
-                <th className="px-3 py-2">Status</th>
+                <th className="px-3 py-2">{t("When")}</th>
+                <th className="px-3 py-2">{t("Who")}</th>
+                <th className="px-3 py-2">{t("What")}</th>
+                {/* Not t("On"): that key is the on/off toggle state elsewhere, and
+                    the catalogue has one translation per English string. */}
+                <th className="px-3 py-2">{t("Acted on")}</th>
+                <th className="px-3 py-2">{t("Status")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100">
@@ -236,7 +240,7 @@ export function ActivityTab({ property }: { property: string }) {
                       </span>
                     ) : (
                       <span className="font-medium">
-                        {(r.actor ?? "system").split("@")[0]}
+                        {r.actor ? r.actor.split("@")[0] : t("system")}
                       </span>
                     )}
                   </td>
@@ -253,11 +257,11 @@ export function ActivityTab({ property }: { property: string }) {
                   </td>
                   <td className="whitespace-nowrap px-3 py-2">
                     <Badge tone={statusTone[r.approval_status] ?? "zinc"}>
-                      {r.approval_status}
+                      {t(r.approval_status)}
                     </Badge>
                     {r.approver && (
                       <span className="ml-1 text-xs text-zinc-400">
-                        by {r.approver.split("@")[0]}
+                        {t("by {user}", { user: r.approver.split("@")[0] })}
                       </span>
                     )}
                   </td>
@@ -266,17 +270,17 @@ export function ActivityTab({ property }: { property: string }) {
                   <tr className="bg-zinc-50/60">
                     <td colSpan={5} className="px-4 py-3">
                       {!detail ? (
-                        <p className="text-xs text-zinc-400">Loading…</p>
+                        <p className="text-xs text-zinc-400">{t("Loading…")}</p>
                       ) : (
                         <div className="space-y-3 text-sm">
                           <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 sm:grid-cols-4">
                             {([
                               ["Logged", fmtWhen(detail.creation)],
                               ["Executed", detail.executed_at ? fmtWhen(detail.executed_at) : "-"],
-                              ["Actor", detail.actor ?? "system"],
+                              ["Actor", detail.actor ?? t("system")],
                               ["Agent", detail.agent_name ?? "-"],
-                              ["Channel", detail.action_channel ?? "-"],
-                              ["Autonomy", detail.autonomy ?? "-"],
+                              ["Channel", detail.action_channel ? t(detail.action_channel) : "-"],
+                              ["Autonomy", detail.autonomy ? t(detail.autonomy) : "-"],
                               [
                                 "Reference",
                                 detail.reference_name
@@ -290,7 +294,7 @@ export function ActivityTab({ property }: { property: string }) {
                             ] as [string, string][]).map(([k, v]) => (
                               <div key={k}>
                                 <dt className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">
-                                  {k}
+                                  {t(k)}
                                 </dt>
                                 <dd className="text-zinc-700">{v}</dd>
                               </div>
@@ -299,7 +303,7 @@ export function ActivityTab({ property }: { property: string }) {
                           {detail.rationale && (
                             <p className="text-zinc-600">
                               <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">
-                                Why:{" "}
+                                {t("Why:")}{" "}
                               </span>
                               {detail.rationale}
                             </p>
@@ -315,7 +319,7 @@ export function ActivityTab({ property }: { property: string }) {
                                 snap == null ? null : (
                                   <div key={label as string}>
                                     <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-zinc-400">
-                                      {label}
+                                      {t(label)}
                                     </p>
                                     <pre className="max-h-56 overflow-auto rounded-lg border border-zinc-200 bg-white p-2.5 text-xs leading-relaxed text-zinc-700">
                                       {typeof snap === "string"
@@ -339,21 +343,21 @@ export function ActivityTab({ property }: { property: string }) {
         </div>
       )}
       <div className="flex items-center justify-between text-sm text-zinc-500">
-        <span>Page {page + 1}</span>
+        <span>{t("Page {n}", { n: page + 1 })}</span>
         <div className="flex gap-2">
           <Button
             variant="outline"
             disabled={page === 0}
             onClick={() => setPage((p) => Math.max(0, p - 1))}
           >
-            Prev
+            {t("Prev")}
           </Button>
           <Button
             variant="outline"
             disabled={rows.length < PAGE}
             onClick={() => setPage((p) => p + 1)}
           >
-            Next
+            {t("Next")}
           </Button>
         </div>
       </div>
@@ -380,6 +384,7 @@ interface ConnectInfo {
 }
 
 export function ConnectTab({ property }: { property: string }) {
+  const { t } = useT()
   const [info, setInfo] = useState<ConnectInfo | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -411,12 +416,11 @@ export function ConnectTab({ property }: { property: string }) {
       <div className="max-w-2xl space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle>Connect Claude</CardTitle>
+            <CardTitle>{t("Connect Claude")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-zinc-600">
-              Connect Claude is turned off on this site. On your own Kamra,
-              every staff member can connect Claude and act within their role.
+              {t("Connect Claude is turned off on this site. On your own Kamra, every staff member can connect Claude and act within their role.")}
             </p>
           </CardContent>
         </Card>
@@ -429,22 +433,18 @@ export function ConnectTab({ property }: { property: string }) {
       <Card>
         <CardHeader>
           <div>
-            <CardTitle>Connect Claude</CardTitle>
+            <CardTitle>{t("Connect Claude")}</CardTitle>
             <p className="mt-0.5 text-xs text-zinc-500">
-              Claude acts as you at {info?.property_name || "this hotel"}: your
-              role decides what it can see and do. A front-desk connection
-              books and checks in; it cannot touch rates or finance. Every
-              action lands in Activity under your name.
+              {t("Claude acts as you at {hotel}: your role decides what it can see and do. A front-desk connection books and checks in; it cannot touch rates or finance. Every action lands in Activity under your name.", {
+                hotel: info?.property_name || t("this hotel"),
+              })}
             </p>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {info && !info.is_public_https && (
             <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              Claude reaches this hotel from Anthropic&apos;s cloud, so the
-              site needs public HTTPS. This origin looks local — use Claude
-              Code over HTTP on this machine, or the stdio sidecar, until you
-              have a public URL.
+              {t("Claude reaches this hotel from Anthropic's cloud, so the site needs public HTTPS. This origin looks local — use Claude Code over HTTP on this machine, or the stdio sidecar, until you have a public URL.")}
             </p>
           )}
           <div className="flex flex-wrap items-center gap-2">
@@ -456,7 +456,7 @@ export function ConnectTab({ property }: { property: string }) {
               }}
             >
               <ExternalLink className="size-4" aria-hidden />
-              Connect Claude
+              {t("Connect Claude")}
             </Button>
             {info && info.active_grants > 0 && (
               <Button
@@ -465,7 +465,7 @@ export function ConnectTab({ property }: { property: string }) {
                 onClick={async () => {
                   if (
                     !confirm(
-                      "Disconnect Claude? It will have to sign in again.",
+                      t("Disconnect Claude? It will have to sign in again."),
                     )
                   )
                     return
@@ -482,34 +482,31 @@ export function ConnectTab({ property }: { property: string }) {
                   }
                 }}
               >
-                Disconnect
+                {t("Disconnect")}
               </Button>
             )}
           </div>
           {info?.last_mcp && (
             <p className="text-xs text-zinc-500">
-              Last MCP action: {prettyAction(info.last_mcp.action_type)} ·{" "}
-              {fmtWhen(info.last_mcp.creation)}
+              {t("Last MCP action: {action} · {when}", {
+                action: prettyAction(info.last_mcp.action_type),
+                when: fmtWhen(info.last_mcp.creation),
+              })}
             </p>
           )}
           {info && info.active_grants > 0 && !info.last_mcp && (
             <p className="text-xs text-green-700">
-              Claude is authorised for this property. Enable the connector in
-              a chat with the + menu, then talk in hotel language.
+              {t("Claude is authorised for this property. Enable the connector in a chat with the + menu, then talk in hotel language.")}
             </p>
           )}
           <p className="text-sm text-zinc-600">
-            Claude opens with this hotel&apos;s MCP URL filled in. Confirm Add,
-            sign in here if asked, pick the property, Allow. Then in Claude
-            enable the connector on the chat + menu and say things like
-            &quot;occupancy this week&quot; or &quot;book a Deluxe for
-            Friday&quot;.
+            {t('Claude opens with this hotel\'s MCP URL filled in. Confirm Add, sign in here if asked, pick the property, Allow. Then in Claude enable the connector on the chat + menu and say things like "occupancy this week" or "book a Deluxe for Friday".')}
           </p>
           {info && (
             <>
               <div>
                 <div className="mb-1 text-xs font-medium text-zinc-500">
-                  MCP URL · {info.tool_count} governed tools
+                  {t("MCP URL · {n} governed tools", { n: info.tool_count })}
                 </div>
                 <div className="flex items-stretch gap-2">
                   <code className="flex-1 overflow-x-auto rounded-lg bg-zinc-100 px-3 py-2 font-mono text-xs text-zinc-800">
@@ -520,7 +517,7 @@ export function ConnectTab({ property }: { property: string }) {
                     onClick={() => markCopied("url", info.mcp_url)}
                   >
                     <Copy className="size-3.5" aria-hidden />
-                    {copied === "url" ? "Copied" : "Copy"}
+                    {copied === "url" ? t("Copied") : t("Copy")}
                   </Button>
                 </div>
               </div>
@@ -537,7 +534,7 @@ export function ConnectTab({ property }: { property: string }) {
                     onClick={() => markCopied("code", info.claude_code)}
                   >
                     <Copy className="size-3.5" aria-hidden />
-                    {copied === "code" ? "Copied" : "Copy"}
+                    {copied === "code" ? t("Copied") : t("Copy")}
                   </Button>
                 </div>
               </div>
@@ -551,9 +548,7 @@ export function ConnectTab({ property }: { property: string }) {
         </CardContent>
       </Card>
       <p className="text-xs text-zinc-400">
-        Need a platform-wide or service key (HeyKoala, unattended jobs)? That
-        is issued by your system admin under Developers. Staff should use
-        Connect Claude — no API secrets on a laptop.
+        {t("Need a platform-wide or service key (HeyKoala, unattended jobs)? That is issued by your system admin under Developers. Staff should use Connect Claude — no API secrets on a laptop.")}
       </p>
     </div>
   )

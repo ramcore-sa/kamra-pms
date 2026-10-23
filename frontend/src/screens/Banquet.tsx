@@ -304,7 +304,7 @@ export default function Banquet() {
                         </td>
                         <td className="py-2 pr-3 text-zinc-600">{r.venue}</td>
                         <td className="py-2 pr-3 text-zinc-600">
-                          {r.event_type}
+                          {t(r.event_type)}
                         </td>
                         <td className="py-2 pr-3 text-right tabular-nums">
                           {r.pax_guaranteed || r.attendees || "-"}

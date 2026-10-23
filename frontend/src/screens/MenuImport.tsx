@@ -7,6 +7,7 @@ import { Button } from "../components/ui/button"
 import { Badge } from "../components/ui/badge"
 import { cn } from "../lib/utils"
 import { cur } from "../lib/money"
+import { useT } from "../lib/i18n"
 
 /** Bulk menu upload: paste or drop a spreadsheet export, see exactly how the
  * columns map and what would be created vs updated, then import. Mirrors the
@@ -57,6 +58,7 @@ export default function MenuImport({
   onClose: () => void
   onDone: () => void
 }) {
+  const { t } = useT()
   const property = getCurrentProperty()
   const [outlets, setOutlets] = useState<Outlet[]>([])
   const [outlet, setOutlet] = useState("")
@@ -165,14 +167,14 @@ export default function MenuImport({
 
   return (
     <Sheet
-      title="Bulk upload menu"
-      description="Paste or upload a spreadsheet export — we'll map the columns and show you what changes before anything is saved."
+      title={t("Bulk upload menu")}
+      description={t("Paste or upload a spreadsheet export — we'll map the columns and show you what changes before anything is saved.")}
       onClose={onClose}
       wide
       footer={
         report ? (
           <Button className="w-full" onClick={onClose}>
-            Done
+            {t("Done")}
           </Button>
         ) : preview ? (
           <div className="flex gap-2">
@@ -181,12 +183,15 @@ export default function MenuImport({
               disabled={busy || preview.ok === 0}
               onClick={doImport}
             >
-              Import {preview.ok} item{preview.ok === 1 ? "" : "s"}
+              {t(preview.ok === 1 ? "Import {n} item" : "Import {n} items", { n: preview.ok })}
               {preview.update_count > 0 &&
-                ` (${preview.new_count} new, ${preview.update_count} updated)`}
+                t(" ({new} new, {updated} updated)", {
+                  new: preview.new_count,
+                  updated: preview.update_count,
+                })}
             </Button>
             <Button variant="outline" onClick={() => setPreview(null)}>
-              Back
+              {t("Back")}
             </Button>
           </div>
         ) : (
@@ -195,7 +200,7 @@ export default function MenuImport({
             disabled={busy || !csv.trim()}
             onClick={doPreview}
           >
-            Preview changes
+            {t("Preview changes")}
           </Button>
         )
       }
@@ -213,17 +218,17 @@ export default function MenuImport({
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
               <p className="flex items-center gap-2 font-semibold">
                 <Check className="size-5" aria-hidden />
-                Menu imported
+                {t("Menu imported")}
               </p>
               <p className="mt-1 text-sm">
-                {report.created} new item{report.created === 1 ? "" : "s"} ·{" "}
-                {report.updated} updated
-                {report.skipped ? ` · ${report.skipped} skipped` : ""}
+                {t(report.created === 1 ? "{n} new item" : "{n} new items", { n: report.created })} ·{" "}
+                {t("{n} updated", { n: report.updated })}
+                {report.skipped ? ` · ${t("{n} skipped", { n: report.skipped })}` : ""}
               </p>
             </div>
             {report.errors.length > 0 && (
               <IssueList
-                title={`${report.errors.length} row(s) couldn't be imported`}
+                title={t("{n} row(s) couldn't be imported", { n: report.errors.length })}
                 issues={report.errors}
               />
             )}
@@ -232,16 +237,16 @@ export default function MenuImport({
           /* ---------- preview ---------- */
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
-              <Badge tone="green">{preview.new_count} new</Badge>
-              <Badge tone="sky">{preview.update_count} to update</Badge>
+              <Badge tone="green">{t("{n} new", { n: preview.new_count })}</Badge>
+              <Badge tone="sky">{t("{n} to update", { n: preview.update_count })}</Badge>
               {preview.skipped > 0 && (
-                <Badge tone="rose">{preview.skipped} skipped</Badge>
+                <Badge tone="rose">{t("{n} skipped", { n: preview.skipped })}</Badge>
               )}
             </div>
 
             <div>
               <p className="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-400">
-                Column mapping
+                {t("Column mapping")}
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {Object.entries(preview.mapping).map(([canon, header]) => (
@@ -257,7 +262,7 @@ export default function MenuImport({
               </div>
               {preview.unmapped.length > 0 && (
                 <p className="mt-1.5 text-xs text-zinc-400">
-                  Ignored: {preview.unmapped.join(", ")}
+                  {t("Ignored: {cols}", { cols: preview.unmapped.join(", ") })}
                 </p>
               )}
             </div>
@@ -265,17 +270,17 @@ export default function MenuImport({
             {preview.sample.length > 0 && (
               <div>
                 <p className="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-400">
-                  First {preview.sample.length} row(s)
+                  {t("First {n} row(s)", { n: preview.sample.length })}
                 </p>
                 <div className="overflow-x-auto rounded-lg border border-zinc-200">
                   <table className="w-full text-sm">
                     <thead className="bg-zinc-50">
                       <tr className="text-left text-xs text-zinc-500">
-                        <th className="px-2 py-1.5">Item</th>
-                        <th className="px-2">Category</th>
-                        <th className="px-2 text-right">Price</th>
-                        <th className="px-2">Type</th>
-                        <th className="px-2">Station</th>
+                        <th className="px-2 py-1.5">{t("Item")}</th>
+                        <th className="px-2">{t("Category")}</th>
+                        <th className="px-2 text-right">{t("Price")}</th>
+                        <th className="px-2">{t("Type")}</th>
+                        <th className="px-2">{t("Station")}</th>
                         <th className="px-2" />
                       </tr>
                     </thead>
@@ -299,20 +304,20 @@ export default function MenuImport({
                               )}
                             >
                               {s.is_alcohol
-                                ? "alcohol"
+                                ? t("alcohol")
                                 : s.is_veg
-                                  ? "veg"
-                                  : "non-veg"}
+                                  ? t("veg")
+                                  : t("non-veg")}
                             </span>
                           </td>
                           <td className="px-2 text-zinc-500">
-                            {s.prep_station}
+                            {s.prep_station ? t(s.prep_station) : ""}
                           </td>
                           <td className="px-2">
                             {s.existing ? (
-                              <Badge tone="sky">update</Badge>
+                              <Badge tone="sky">{t("update")}</Badge>
                             ) : (
-                              <Badge tone="green">new</Badge>
+                              <Badge tone="green">{t("new")}</Badge>
                             )}
                           </td>
                         </tr>
@@ -325,7 +330,7 @@ export default function MenuImport({
 
             {preview.issues.length > 0 && (
               <IssueList
-                title={`${preview.skipped} row(s) will be skipped`}
+                title={t("{n} row(s) will be skipped", { n: preview.skipped })}
                 issues={preview.issues}
               />
             )}
@@ -335,14 +340,14 @@ export default function MenuImport({
           <div className="space-y-4">
             <label className="block">
               <span className="mb-1.5 block text-sm font-medium text-zinc-600">
-                Outlet
+                {t("Outlet")}
               </span>
               <select
                 className={inputCls}
                 value={outlet}
                 onChange={(e) => setOutlet(e.target.value)}
               >
-                <option value="">Choose an outlet…</option>
+                <option value="">{t("Choose an outlet…")}</option>
                 {outlets.map((o) => (
                   <option key={o.name} value={o.name}>
                     {o.outlet_name}
@@ -350,19 +355,18 @@ export default function MenuImport({
                 ))}
               </select>
               <span className="mt-1 block text-xs text-zinc-400">
-                Used for every row — unless your file has its own{" "}
-                <code>outlet</code> column.
+                {t("Used for every row — unless your file has its own outlet column.")}
               </span>
             </label>
 
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={downloadTemplate}>
                 <Download className="mr-1 size-4" aria-hidden />
-                Download template
+                {t("Download template")}
               </Button>
               <Button variant="outline" onClick={() => fileRef.current?.click()}>
                 <Upload className="mr-1 size-4" aria-hidden />
-                Upload .csv
+                {t("Upload .csv")}
               </Button>
               <input
                 ref={fileRef}
@@ -376,7 +380,7 @@ export default function MenuImport({
             <label className="block">
               <span className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-zinc-600">
                 <Table2 className="size-4" aria-hidden />
-                …or paste the rows here
+                {t("…or paste the rows here")}
               </span>
               <textarea
                 className={cn(inputCls, "h-56 font-mono text-xs")}
@@ -392,11 +396,7 @@ export default function MenuImport({
               />
             </label>
             <p className="text-xs text-zinc-400">
-              Headers are matched loosely — <em>Dish / Item / Product</em>,{" "}
-              <em>Rate / Price / MRP</em>, <em>Veg / Non-Veg</em> all work.
-              Only <strong>item name</strong> and <strong>price</strong> are
-              required. Re-importing updates existing dishes instead of
-              duplicating them.
+              {t("Headers are matched loosely — Dish / Item / Product, Rate / Price / MRP, Veg / Non-Veg all work. Only item name and price are required. Re-importing updates existing dishes instead of duplicating them.")}
             </p>
           </div>
         )}
@@ -412,6 +412,7 @@ function IssueList({
   title: string
   issues: { row: number; item: string; error: string }[]
 }) {
+  const { t } = useT()
   return (
     <div>
       <p className="mb-1 text-xs font-medium uppercase tracking-wide text-rose-500">
@@ -421,7 +422,7 @@ function IssueList({
         {issues.map((i) => (
           <li key={`${i.row}-${i.item}`} className="text-xs text-zinc-600">
             <span className="font-medium">
-              Row {i.row}
+              {t("Row {n}", { n: i.row })}
               {i.item ? ` · ${i.item}` : ""}
             </span>{" "}
             — {i.error}

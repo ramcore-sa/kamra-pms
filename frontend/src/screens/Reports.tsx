@@ -256,7 +256,7 @@ export default function Reports() {
               )}
               {d.collections.modes.map((m) => (
                 <div key={m.mode} className="flex justify-between py-0.5">
-                  <span>{m.mode} · {m.txns}</span>
+                  <span>{t(m.mode)} · {m.txns}</span>
                   <span>{cur()}{inr(m.total)}</span>
                 </div>
               ))}

@@ -53,7 +53,8 @@ const money = (n: unknown) =>
 interface Column {
   key: string
   label: string
-  kind?: "money" | "num" | "date"
+  /** "label": a status or code from the server, shown in the reader's language. */
+  kind?: "money" | "num" | "date" | "label"
   render?: (row: CheckItem) => ReactNode
 }
 
@@ -94,6 +95,7 @@ function StepTable({
     if (v === null || v === undefined || v === "") return "-"
     if (c.kind === "money") return money(v)
     if (c.kind === "date") return fmtDay(v)
+    if (c.kind === "label") return t(String(v))
     return String(v)
   }
   const right = (c: Column) => (c.kind === "money" || c.kind === "num" ? "text-end tabular-nums" : "")
@@ -186,12 +188,12 @@ const STAY_COLS: Column[] = [
   { key: "room", label: "Room" },
   { key: "balance", label: "Balance", kind: "money" },
   { key: "adults", label: "Ad/Ch", render: (r) => `${r.adults ?? 0}/${r.children ?? 0}` },
-  { key: "source", label: "Source" },
+  { key: "source", label: "Source", kind: "label" },
 ]
 
 const FOLIO_COLS: Column[] = [
   { key: "folio", label: "Folio", render: folioLink },
-  { key: "folio_type", label: "Type" },
+  { key: "folio_type", label: "Type", kind: "label" },
   { key: "reservation", label: "Confirmation", render: resLink },
   { key: "guest_name", label: "Guest" },
   { key: "room", label: "Room" },
@@ -205,7 +207,7 @@ const POS_COLS: Column[] = [
   { key: "table_no", label: "Table" },
   { key: "room", label: "Room" },
   { key: "guest_name", label: "Guest" },
-  { key: "state", label: "State" },
+  { key: "state", label: "State", kind: "label" },
   { key: "amount", label: "Amount", kind: "money" },
 ]
 
@@ -646,9 +648,9 @@ export default function EndOfDayWizard() {
           <StepTable
             cols={[
               { key: "room", label: "Room" },
-              { key: "front_office", label: "Front office" },
-              { key: "room_board", label: "Room board" },
-              { key: "housekeeping_status", label: "Housekeeping" },
+              { key: "front_office", label: "Front office", kind: "label" },
+              { key: "room_board", label: "Room board", kind: "label" },
+              { key: "housekeeping_status", label: "Housekeeping", kind: "label" },
               { key: "guest_name", label: "Guest" },
               { key: "issue", label: "Issue", render: (r) => t(String(r.issue)) },
             ]}
@@ -661,8 +663,8 @@ export default function EndOfDayWizard() {
             cols={[
               { key: "room", label: "Room" },
               { key: "room_type", label: "Room type" },
-              { key: "housekeeping_status", label: "Housekeeping" },
-              { key: "room_board", label: "Room board" },
+              { key: "housekeeping_status", label: "Housekeeping", kind: "label" },
+              { key: "room_board", label: "Room board", kind: "label" },
             ]}
             rows={checks.vacant_rooms?.items ?? []}
             empty="No vacant rooms."

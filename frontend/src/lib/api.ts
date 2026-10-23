@@ -6,6 +6,7 @@
 // (see kamra/www/kamra.py). Frappe enforces it on POSTs from a logged-in
 // session; guests and the dev server (ignore_csrf) don't need it.
 import { htmlToText } from "./utils"
+import { t } from "./i18n"
 
 function csrfToken(): string | undefined {
   const t = (window as unknown as { csrf_token?: string }).csrf_token
@@ -43,7 +44,7 @@ async function doFetch(path: string, init?: RequestInit) {
       console.warn(`[kamra] network failure calling ${path}`, err)
       window.dispatchEvent(new Event("kamra:offline"))
       throw Object.assign(
-        new Error("Can't reach Kamra right now. Check your connection — we'll reconnect automatically."),
+        new Error(t("Can't reach Kamra right now. Check your connection — we'll reconnect automatically.")),
         { network: true },
       )
     }
@@ -102,7 +103,7 @@ export async function uploadFile(
     credentials: "include",
   })
   if (!res.ok) {
-    let detail = `upload failed (${res.status})`
+    let detail = t("Upload failed ({status})", { status: res.status })
     try {
       const body = await res.json()
       const msgs = JSON.parse(body._server_messages ?? "[]")

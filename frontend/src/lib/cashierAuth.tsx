@@ -10,6 +10,7 @@ import {
 import { call, getCurrentProperty } from "./api"
 import { serverError } from "./resource"
 import { PinPad } from "../components/PinPad"
+import { t } from "./i18n"
 
 type PinStatus = {
   required: boolean
@@ -105,7 +106,7 @@ export function CashierAuthProvider({ children }: { children: ReactNode }) {
           return
         }
         if (s.locked) {
-          reject(new Error("PIN locked — try again later."))
+          reject(new Error(t("PIN locked — try again later.")))
           return
         }
         setPadMode(s.has_pin && !s.must_reset ? "unlock" : "enroll")
@@ -136,18 +137,18 @@ export function CashierAuthProvider({ children }: { children: ReactNode }) {
       <PinPad
         open={padOpen}
         mode={padMode}
-        title={padMode === "enroll" ? "Set your cashier PIN" : "Cashier PIN"}
+        title={padMode === "enroll" ? t("Set your cashier PIN") : t("Cashier PIN")}
         subtitle={
           padMode === "enroll"
-            ? "4–8 digits. Required for money actions at this property."
-            : "Unlocks your till for 15 minutes."
+            ? t("4–8 digits. Required for money actions at this property.")
+            : t("Unlocks your till for 15 minutes.")
         }
         error={padError}
         busy={busy}
         onSubmit={onSubmit}
         onClose={() => {
           setPadOpen(false)
-          waiter?.reject(new Error("PIN entry cancelled."))
+          waiter?.reject(new Error(t("PIN entry cancelled.")))
           setWaiter(null)
         }}
       />

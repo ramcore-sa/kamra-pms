@@ -464,7 +464,7 @@ export default function Setup() {
                     >
                       {timeOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>
-                          {opt.label}
+                          {opt.label.replace(/AM|PM/, (m) => t(m))}
                         </option>
                       ))}
                     </select>
@@ -894,7 +894,7 @@ export default function Setup() {
                   </div>
                   {preview.issues.map((iss) => (
                     <p key={iss.row} className="text-rose-600">
-                      Row {iss.row}
+                      {t("Row {row}", { row: iss.row })}
                       {iss.guest ? ` (${iss.guest})` : ""}: {iss.error}
                     </p>
                   ))}
@@ -913,7 +913,7 @@ export default function Setup() {
                   </p>
                   {importReport.errors.map((e) => (
                     <p key={e.row} className="text-rose-600">
-                      Row {e.row} ({e.guest}): {e.error}
+                      {t("Row {row}", { row: e.row })} ({e.guest}): {e.error}
                     </p>
                   ))}
                 </div>

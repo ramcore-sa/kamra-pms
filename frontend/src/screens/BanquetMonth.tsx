@@ -23,6 +23,7 @@ import {
   type MonthCell,
 } from "../lib/api"
 import { serverError } from "../lib/resource"
+import { useT } from "../lib/i18n"
 import { Button } from "../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Empty, ErrorNote, inr, StatusPill, today } from "./banquet/shared"
@@ -52,6 +53,7 @@ const monthLabel = (m: string) =>
 const weekend = (iso: string) => [0, 6].includes(new Date(iso + "T00:00:00").getDay())
 
 export default function BanquetMonth() {
+  const { t } = useT()
   const navigate = useNavigate()
   const [month, setMonth] = useState(today().slice(0, 7))
   const [data, setData] = useState<MonthAvailability | null>(null)
@@ -92,25 +94,24 @@ export default function BanquetMonth() {
               </span>
             </CardTitle>
             <p className="mt-0.5 text-xs text-zinc-400">
-              Every hall, every session. Click an open slot to start an
-              enquiry on it.
+              {t("Every hall, every session. Click an open slot to start an enquiry on it.")}
             </p>
           </div>
           <div className="flex items-center gap-1.5">
             <Button
               variant="outline"
               onClick={() => setMonth(monthShift(month, -1))}
-              aria-label="Previous month"
+              aria-label={t("Previous month")}
             >
               <ChevronLeft className="size-4" />
             </Button>
             <Button variant="outline" onClick={() => setMonth(today().slice(0, 7))}>
-              This month
+              {t("This month")}
             </Button>
             <Button
               variant="outline"
               onClick={() => setMonth(monthShift(month, 1))}
-              aria-label="Next month"
+              aria-label={t("Next month")}
             >
               <ChevronRight className="size-4" />
             </Button>
@@ -119,9 +120,9 @@ export default function BanquetMonth() {
         <CardContent>
           <ErrorNote error={error} />
           {!data ? (
-            <Empty>Loading the month…</Empty>
+            <Empty>{t("Loading the month…")}</Empty>
           ) : data.rows.length === 0 ? (
-            <Empty>No halls yet — add them under Halls &amp; Venues.</Empty>
+            <Empty>{t("No halls yet — add them under Halls & Venues.")}</Empty>
           ) : (
             <>
               <div className="mb-4 flex flex-wrap items-center gap-4">
@@ -131,10 +132,11 @@ export default function BanquetMonth() {
                     <Sparkles className="size-4 text-amber-500" />
                     <span>
                       <span className="font-medium text-zinc-800">
-                        {openPrime.length} weekend evening
-                        {openPrime.length === 1 ? "" : "s"}
+                        {openPrime.length === 1
+                          ? t("1 weekend evening")
+                          : t("{n} weekend evenings", { n: openPrime.length })}
                       </span>{" "}
-                      still open — the slots worth selling first.
+                      {t("still open — the slots worth selling first.")}
                     </span>
                   </p>
                 )}
@@ -148,10 +150,10 @@ export default function BanquetMonth() {
                   <thead>
                     <tr>
                       <th className="sticky left-0 z-20 w-28 bg-white p-2 text-left text-[11px] font-medium uppercase tracking-wider text-zinc-500">
-                        Hall
+                        {t("Hall")}
                       </th>
                       <th className="sticky left-28 z-20 w-20 bg-white p-2 text-left text-[11px] font-medium uppercase tracking-wider text-zinc-500">
-                        Session
+                        {t("Session")}
                       </th>
                       {data.dates.map((d) => (
                         <th
@@ -189,7 +191,7 @@ export default function BanquetMonth() {
                                 {r.venue_name}
                               </div>
                               <div className="text-[11px] leading-tight text-zinc-400">
-                                {r.capacity ? <>{r.capacity} pax<br /></> : null}
+                                {r.capacity ? <>{t("{n} pax", { n: r.capacity })}<br /></> : null}
                                 {inr(r.base_price)}
                               </div>
                             </td>
@@ -202,7 +204,7 @@ export default function BanquetMonth() {
                                 : "")
                             }
                           >
-                            {r.session}
+                            {t(r.session)}
                           </td>
                           {data.dates.map((d) => {
                             const cells = r.by_date[d] ?? []
@@ -252,12 +254,12 @@ export default function BanquetMonth() {
                 {(Object.keys(CELL) as FunctionStatus[]).map((s) => (
                   <span key={s} className="flex items-center gap-1.5">
                     <span className={"inline-block size-3 rounded " + CELL[s]} />
-                    {s}
+                    {t(s)}
                   </span>
                 ))}
                 <span className="flex items-center gap-1.5">
                   <span className="inline-block size-3 rounded border border-dashed border-zinc-300" />
-                  Open
+                  {t("Open")}
                 </span>
               </div>
             </>
@@ -283,14 +285,15 @@ function Slot({
   weekend: boolean
   onOpen: () => void
 }) {
+  const { t } = useT()
   return (
     <div className="relative">
       <button
         onClick={onOpen}
         aria-label={
           cell
-            ? `${cell.customer_name}, ${cell.event_type}`
-            : "Open — start an enquiry"
+            ? `${cell.customer_name}, ${t(cell.event_type)}`
+            : t("Open — start an enquiry")
         }
         className={
           "block h-7 w-full rounded transition-all " +
@@ -313,18 +316,18 @@ function Slot({
             <StatusPill status={cell.status} className="!bg-white/15 !text-white !ring-0" />
           </div>
           <div className="mt-0.5 text-white/70">
-            {cell.event_name || cell.event_type}
-            {cell.pax ? ` · ${cell.pax} pax` : ""}
+            {cell.event_name || t(cell.event_type)}
+            {cell.pax ? ` · ${t("{n} pax", { n: cell.pax })}` : ""}
           </div>
           <div className="mt-1 text-white/90">
             {inr(cell.grand_total)}
             {cell.balance_due > 0 && (
-              <span className="text-amber-300"> · {inr(cell.balance_due)} due</span>
+              <span className="text-amber-300"> · {t("{amt} due", { amt: inr(cell.balance_due) })}</span>
             )}
           </div>
           {cell.spans_day && (
             <div className="mt-0.5 text-[10px] text-white/50">
-              Part of a multi-day function
+              {t("Part of a multi-day function")}
             </div>
           )}
         </div>
@@ -335,6 +338,7 @@ function Slot({
 
 /** How much of the month is sold — one number a manager reads instantly. */
 function Gauge({ value }: { value: number }) {
+  const { t } = useT()
   return (
     <div className="flex items-center gap-3">
       <div className="relative h-2 w-40 overflow-hidden rounded-full bg-zinc-100">
@@ -352,7 +356,7 @@ function Gauge({ value }: { value: number }) {
       </div>
       <span className="text-sm">
         <span className="font-semibold tabular-nums">{value}%</span>
-        <span className="text-zinc-400"> of hall-sessions sold</span>
+        <span className="text-zinc-400"> {t("of hall-sessions sold")}</span>
       </span>
     </div>
   )

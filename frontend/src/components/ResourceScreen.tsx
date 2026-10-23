@@ -22,7 +22,7 @@ import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import ImageField from "./ImageField"
-import { moneyLocale } from "../lib/money"
+import { cur, moneyLocale } from "../lib/money"
 import { useT, t as translate } from "../lib/i18n"
 
 export interface FieldSpec {
@@ -191,6 +191,10 @@ export function ResourceScreen({
   headerAction?: ReactNode
 }) {
   const { t } = useT()
+  // Config labels carry the currency as a {cur} placeholder rather than
+  // baking cur() in at module load: the label stays one catalogue key in
+  // every currency, and it reflects the property's currency when rendered.
+  const label = (s: string) => t(s, { cur: cur() })
   const [rows, setRows] = useState<Row[]>([])
   const [editing, setEditing] = useState<Row | "new" | null>(null)
   const [draft, setDraft] = useState<Record<string, unknown>>({})
@@ -299,7 +303,7 @@ export function ResourceScreen({
       return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t
     }
     const csv = [
-      cols.map((c) => esc(c.label)).join(","),
+      cols.map((c) => esc(label(c.label))).join(","),
       ...all.map((r) => cols.map((c) => esc(r[c.field])).join(",")),
     ].join("\n")
     const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" })
@@ -432,7 +436,7 @@ export function ResourceScreen({
                 }
                 className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm focus:outline-2 focus:outline-offset-1 focus:outline-brand-600"
               >
-                <option value="">{t("{label}: all", { label: t(f.label) })}</option>
+                <option value="">{t("{label}: all", { label: label(f.label) })}</option>
                 {f.options.map((o) => (
                   <option key={o} value={o}>
                     {t(o)}
@@ -442,10 +446,10 @@ export function ResourceScreen({
             ))}
             {config.dateFilter && (
               <div className="flex items-center gap-1.5 text-sm text-zinc-500">
-                <span className="text-xs">{t(config.dateFilter.label)}</span>
+                <span className="text-xs">{label(config.dateFilter.label)}</span>
                 <input
                   type="date"
-                  aria-label={`${t(config.dateFilter.label)} ${t("from")}`}
+                  aria-label={`${label(config.dateFilter.label)} ${t("from")}`}
                   className="rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-sm"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
@@ -453,7 +457,7 @@ export function ResourceScreen({
                 <span className="text-xs">{t("to")}</span>
                 <input
                   type="date"
-                  aria-label={`${t(config.dateFilter.label)} ${t("to")}`}
+                  aria-label={`${label(config.dateFilter.label)} ${t("to")}`}
                   className="rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-sm"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
@@ -503,7 +507,7 @@ export function ResourceScreen({
                         checked={!hiddenCols.has(c.field)}
                         onChange={() => toggleCol(c.field)}
                       />
-                      {t(c.label)}
+                      {label(c.label)}
                     </label>
                   ))}
                   <button
@@ -522,7 +526,7 @@ export function ResourceScreen({
               <tr className="border-b border-zinc-200 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
                 {visibleCols.map((c) => (
                   <th key={c.field} className="py-2 pr-4">
-                    {t(c.label)}
+                    {label(c.label)}
                   </th>
                 ))}
               </tr>
@@ -655,7 +659,7 @@ export function ResourceScreen({
                     }
                   >
                     <span className="mb-1.5 block text-sm font-medium text-zinc-600">
-                      {t(spec.label)}
+                      {label(spec.label)}
                       {spec.required && <span className="text-rose-500"> *</span>}
                     </span>
                     <FieldInput

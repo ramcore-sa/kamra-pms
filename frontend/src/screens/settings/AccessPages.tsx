@@ -432,12 +432,13 @@ const MATRIX_ROLES = [
 ]
 
 function Cell({ on }: { on: boolean }) {
+  const { t } = useT()
   return (
     <td className="px-3 py-2 text-center">
       {on ? (
-        <Check className="mx-auto size-4 text-brand-600" aria-label="yes" />
+        <Check className="mx-auto size-4 text-brand-600" aria-label={t("yes")} />
       ) : (
-        <Minus className="mx-auto size-4 text-zinc-300" aria-label="no" />
+        <Minus className="mx-auto size-4 text-zinc-300" aria-label={t("no")} />
       )}
     </td>
   )

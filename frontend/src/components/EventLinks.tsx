@@ -6,6 +6,7 @@ import { call } from "../lib/api"
 import { serverError, type Row } from "../lib/resource"
 import { Button } from "./ui/button"
 import LinkedRecords from "./LinkedRecords"
+import { useT } from "../lib/i18n"
 
 /** Billing & connections for an event: chips to everything it touches, and
  *  a one-tap path to the group folio (rooms + banquet on one bill). */
@@ -16,6 +17,7 @@ export default function EventLinks({
   row: Row
   reload: () => void
 }) {
+  const { t } = useT()
   const name = String(row.name)
   const [group, setGroup] = useState<string | null>(null)
   const [hasFolio, setHasFolio] = useState(false)
@@ -39,14 +41,13 @@ export default function EventLinks({
     <div className="space-y-3 border-t border-zinc-200 pt-4">
       <Button onClick={() => navigate(`/banquet/${encodeURIComponent(name)}`)}>
         <PartyPopper className="size-4" aria-hidden />
-        Open the function sheet
+        {t("Open the function sheet")}
       </Button>
       <p className="text-xs text-zinc-500">
-        Menus, services, the negotiation, payment terms and the event order
-        all live there - this form only edits the basics.
+        {t("Menus, services, the negotiation, payment terms and the event order all live there - this form only edits the basics.")}
       </p>
       <div className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-        Connections &amp; billing
+        {t("Connections & billing")}
       </div>
       <LinkedRecords doctype="Venue Booking" name={name} exclude={["event"]} />
       {group && !hasFolio && (
@@ -71,13 +72,12 @@ export default function EventLinks({
           }}
         >
           <Receipt className="size-4" aria-hidden />
-          Open group folio (bill this event)
+          {t("Open group folio (bill this event)")}
         </Button>
       )}
       {!group && (
         <p className="text-xs text-zinc-500">
-          To bill this event, attach it to a group in Groups &amp; Blocks -
-          rooms and banquet then land on one folio.
+          {t("To bill this event, attach it to a group in Groups & Blocks - rooms and banquet then land on one folio.")}
         </p>
       )}
       {error && <p className="text-xs text-rose-600">{error}</p>}

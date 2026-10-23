@@ -327,11 +327,11 @@ export default function POS() {
   const willPrintKot = autoKot || printKot
   const gstRate = Number(outletDoc?.gst_rate ?? 5)
   const orderLabel = (d: { table_no?: string | null; room?: string | null; order_type?: string | null; customer_name?: string | null; name?: string }) =>
-    d.table_no ? `Table ${d.table_no}`
-      : d.room ? `Room ${d.room.split("-").pop()}`
+    d.table_no ? t("Table {n}", { n: d.table_no })
+      : d.room ? t("Room {n}", { n: d.room.split("-").pop() ?? "" })
         : d.order_type === "Takeaway" || d.order_type === "Delivery"
-          ? `${d.order_type}${d.customer_name ? ` · ${d.customer_name.split(" ")[0]}` : ""}`
-          : (d.name || "Bill")
+          ? `${t(d.order_type)}${d.customer_name ? ` · ${d.customer_name.split(" ")[0]}` : ""}`
+          : (d.name || t("Bill"))
 
   // what the bill panel is pricing right now
   const taxable = selected && detail ? Number(detail.order_total || 0) : newSubtotal - disc
@@ -385,9 +385,9 @@ export default function POS() {
     }
   }
   const newBillLabel = () =>
-    orderType === "Dine In" && table ? `Table ${table}`
-      : orderType === "Room Service" && room ? `Room ${room.split("-").pop()}`
-        : `${orderType}${custName ? ` · ${custName.split(" ")[0]}` : ""}`
+    orderType === "Dine In" && table ? t("Table {n}", { n: table })
+      : orderType === "Room Service" && room ? t("Room {n}", { n: room.split("-").pop() ?? "" })
+        : `${t(orderType)}${custName ? ` · ${custName.split(" ")[0]}` : ""}`
 
   /** Create the bill (optionally firing the KOT). Returns the order id. */
   async function createBill(fire: boolean) {
@@ -490,7 +490,7 @@ export default function POS() {
     const last = (detail.kot_tickets || []).at(-1)
     if (last?.items?.length) {
       printSavedKot(last, true)
-      setPrintNote(`Reprinting KOT #${last.kot_no}.`)
+      setPrintNote(t("Reprinting KOT #{n}.", { n: last.kot_no ?? "" }))
       return
     }
     const items = detail.items.filter((i) => !i.voided && i.kot_status !== "New")
@@ -650,7 +650,7 @@ export default function POS() {
                   <div className="grid grid-cols-2 gap-1.5">
                     <select className={inputCls + " !py-1 text-xs"} value={resForm.table}
                       onChange={(e) => setResForm({ ...resForm, table: e.target.value })}>
-                      <option value="">Table…</option>
+                      <option value="">{t("Table…")}</option>
                       {tables.filter((t) => !t.temp).map((t) => <option key={t.table} value={t.table}>{t.table}</option>)}
                     </select>
                     <input className={inputCls + " !py-1 text-xs"} type="datetime-local" value={resForm.at}
@@ -702,7 +702,7 @@ export default function POS() {
                   {tableGroups.map(([groupName, group]) => (
                     <div key={groupName ?? "_"} className="mb-2">
                       {groupName && (
-                        <h4 className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">{groupName}</h4>
+                        <h4 className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">{groupName === "Other" ? t("Other") : groupName}</h4>
                       )}
                       <div className="grid grid-cols-3 gap-2">
                         {group.map((tile) => (
@@ -743,22 +743,22 @@ export default function POS() {
                     </div>
                   ))}
                   {resTile && (() => {
-                    const t = tables.find((x) => x.table === resTile)
-                    if (!t || t.state !== "reserved") return null
+                    const rt = tables.find((x) => x.table === resTile)
+                    if (!rt || rt.state !== "reserved") return null
                     return (
                       <div className="mb-2 space-y-1.5 rounded-xl border border-violet-200 bg-violet-50 p-2">
                         <div className="flex items-center justify-between text-xs">
                           <span className="font-semibold text-violet-900">
-                            {t.table} · {t.res_time} · {t.res_guest}
-                            {t.res_party ? ` · ${t.res_party} pax` : ""}
+                            {rt.table} · {rt.res_time} · {rt.res_guest}
+                            {rt.res_party ? ` · ${t("{n} pax", { n: rt.res_party })}` : ""}
                           </span>
                           <button onClick={() => setResTile(null)} className="text-violet-400 hover:text-violet-700">✕</button>
                         </div>
-                        {t.res_phone && <p className="text-[11px] text-violet-700">{t.res_phone}</p>}
+                        {rt.res_phone && <p className="text-[11px] text-violet-700">{rt.res_phone}</p>}
                         <div className="flex gap-1.5">
-                          <Button className="flex-1 !py-1 text-xs" disabled={busy} onClick={() => seatReservation(t)}>Seat now</Button>
-                          <Button variant="outline" className="!px-2 !py-1 text-xs" disabled={busy} onClick={() => closeReservation(t, "No Show")}>No show</Button>
-                          <Button variant="outline" className="!px-2 !py-1 text-xs text-rose-600" disabled={busy} onClick={() => closeReservation(t, "Cancelled")}>Cancel</Button>
+                          <Button className="flex-1 !py-1 text-xs" disabled={busy} onClick={() => seatReservation(rt)}>{t("Seat now")}</Button>
+                          <Button variant="outline" className="!px-2 !py-1 text-xs" disabled={busy} onClick={() => closeReservation(rt, "No Show")}>{t("No show")}</Button>
+                          <Button variant="outline" className="!px-2 !py-1 text-xs text-rose-600" disabled={busy} onClick={() => closeReservation(rt, "Cancelled")}>{t("Cancel")}</Button>
                         </div>
                       </div>
                     )
@@ -772,32 +772,32 @@ export default function POS() {
                        ["Reserved", "border border-violet-300 bg-violet-50"],
                        ["Cleaning", "border border-zinc-300 bg-zinc-100"]] as const).map(([l, c]) => (
                       <span key={l} className="flex items-center gap-1">
-                        <span className={"size-2.5 rounded " + c} />{l}
+                        <span className={"size-2.5 rounded " + c} />{t(l)}
                       </span>
                     ))}
                   </div>
                   <button onClick={() => { newOrder(); setOrderType("Dine In"); setCustomTable(true) }}
                     className="w-full rounded-xl border border-dashed border-zinc-300 px-2 py-1.5 text-xs font-medium text-zinc-500 transition hover:border-brand-500 hover:text-brand-700">
-                    <Plus className="mr-0.5 inline size-3.5" />Temp table
+                    <Plus className="mr-0.5 inline size-3.5" />{t("Temp table")}
                   </button>
                   {chooser && (() => {
-                    const t = tables.find((x) => x.table === chooser)
-                    if (!t) return null
+                    const ct = tables.find((x) => x.table === chooser)
+                    if (!ct) return null
                     return (
                       <div className="mt-2 space-y-1 rounded-xl bg-zinc-50 p-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-zinc-500">{t.table} — {t.bills} bills</span>
+                          <span className="text-xs font-semibold text-zinc-500">{t("{table} — {n} bills", { table: ct.table, n: ct.bills })}</span>
                           <button onClick={() => setChooser(null)} className="text-zinc-400 hover:text-zinc-600">✕</button>
                         </div>
-                        {t.orders.map((b) => (
+                        {ct.orders.map((b) => (
                           <button key={b.order} onClick={() => openTab(b.order)}
                             className={"flex w-full items-center justify-between rounded-lg border px-2 py-1 text-xs transition " + TILE[b.state]}>
                             <span>{b.label}</span><span className="tabular-nums">{cur()}{inr(b.order_total)}</span>
                           </button>
                         ))}
-                        <button onClick={() => newOrder(t.table)}
+                        <button onClick={() => newOrder(ct.table)}
                           className="w-full rounded-lg border border-dashed border-zinc-400 px-2 py-1 text-xs text-zinc-600 hover:border-brand-500 hover:text-brand-700">
-                          <Plus className="mr-0.5 inline size-3" />New bill
+                          <Plus className="mr-0.5 inline size-3" />{t("New bill")}
                         </button>
                       </div>
                     )
@@ -805,13 +805,13 @@ export default function POS() {
                 </>
               ) : (
                 <p className="py-2 text-xs text-zinc-400">
-                  No table layout for this outlet yet — add tables (one per line,
-                  <code className="mx-1 rounded bg-zinc-100 px-1">T1:4</code> = 4 seats) on the POS Outlet.
+                  {t("No table layout for this outlet yet — add tables (one per line,")}
+                  <code className="mx-1 rounded bg-zinc-100 px-1">T1:4</code> {t("= 4 seats) on the POS Outlet.")}
                 </p>
               )}
               {looseBills.length > 0 && (
                 <div className="mt-3 border-t border-zinc-100 pt-2">
-                  <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">Rooms · takeaway · delivery</h4>
+                  <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">{t("Rooms · takeaway · delivery")}</h4>
                   <div className="flex flex-wrap gap-1">
                     {looseBills.map((o) => (
                       <button key={o.name} onClick={() => openTab(o.name)}
@@ -827,10 +827,10 @@ export default function POS() {
 
             {(runningBills.length > 0 || kitchenBills.length > 0) && (
               <div className="shrink-0 rounded-xl border border-zinc-200 bg-white p-3">
-                <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-zinc-500">Open bills</h3>
+                <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-zinc-500">{t("Open bills")}</h3>
                 {runningBills.length > 0 && (
                   <div className="mb-2">
-                    <p className="mb-1 text-[10px] font-semibold uppercase text-amber-700">Not sent to kitchen</p>
+                    <p className="mb-1 text-[10px] font-semibold uppercase text-amber-700">{t("Not sent to kitchen")}</p>
                     <ul className="space-y-1">
                       {runningBills.map((o) => (
                         <li key={o.name}>
@@ -847,7 +847,7 @@ export default function POS() {
                 )}
                 {kitchenBills.length > 0 && (
                   <div>
-                    <p className="mb-1 text-[10px] font-semibold uppercase text-sky-700">In kitchen / not settled</p>
+                    <p className="mb-1 text-[10px] font-semibold uppercase text-sky-700">{t("In kitchen / not settled")}</p>
                     <ul className="space-y-1">
                       {kitchenBills.map((o) => (
                         <li key={o.name}>
@@ -868,7 +868,7 @@ export default function POS() {
             )}
 
             <div className="shrink-0 rounded-xl border border-zinc-200 bg-white p-3">
-              <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-zinc-500">Recent</h3>
+              <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-zinc-500">{t("Recent")}</h3>
               <ul className="space-y-1">
                 {recent.map((r) => (
                   <li key={r.name}>
@@ -877,12 +877,12 @@ export default function POS() {
                         (r.open ? "hover:bg-brand-50" : "cursor-default opacity-60")}>
                       <span className="min-w-0">
                         <span className="font-medium text-zinc-700">{r.label}</span>
-                        <span className="ml-1 text-zinc-400">· {r.order_type}</span>
+                        <span className="ml-1 text-zinc-400">· {r.order_type && t(r.order_type)}</span>
                       </span>
                       <span className="flex shrink-0 items-center gap-1.5 tabular-nums">
                         <span className="font-semibold">{cur()}{inr(r.order_total)}</span>
-                        {r.nc ? <span className="rounded bg-amber-50 px-1 text-[10px] font-bold text-amber-700">NC</span>
-                          : r.paid ? <span className="rounded bg-emerald-50 px-1 text-[10px] font-medium text-emerald-700">{r.payment_mode}</span>
+                        {r.nc ? <span className="rounded bg-amber-50 px-1 text-[10px] font-bold text-amber-700">{t("NC")}</span>
+                          : r.paid ? <span className="rounded bg-emerald-50 px-1 text-[10px] font-medium text-emerald-700">{r.payment_mode && t(r.payment_mode)}</span>
                             : r.status === "Cancelled" ? <span className="rounded bg-rose-50 px-1 text-[10px] font-medium text-rose-600">✕</span>
                               : null}
                         <span className="text-zinc-400">{ago(r.modified)}</span>
@@ -890,7 +890,7 @@ export default function POS() {
                     </button>
                   </li>
                 ))}
-                {recent.length === 0 && <p className="py-2 text-center text-xs text-zinc-400">No orders yet today.</p>}
+                {recent.length === 0 && <p className="py-2 text-center text-xs text-zinc-400">{t("No orders yet today.")}</p>}
               </ul>
             </div>
     </>
@@ -1071,15 +1071,15 @@ export default function POS() {
                   {orderLabel(detail)}
                   {detail.guests ? <span className="flex items-center gap-0.5 text-xs font-normal text-zinc-400"><Users className="size-3" />{detail.guests}</span> : null}
                   {detail.table_no && detail.status !== "Delivered" && (
-                    <button title="New bill on this table (another party)"
+                    <button title={t("New bill on this table (another party)")}
                       onClick={() => newOrder(detail.table_no!)}
                       className="rounded-md border border-dashed border-zinc-300 px-1.5 py-0.5 text-[11px] font-medium text-zinc-500 hover:border-brand-500 hover:text-brand-700">
-                      + bill
+                      + {t("bill")}
                     </button>
                   )}
                 </h2>
                 <span className="text-xs text-zinc-400">
-                  {detail.kot_no ? `KOT #${detail.kot_no} · ` : ""}{detail.status}
+                  {detail.kot_no ? `KOT #${detail.kot_no} · ` : ""}{t(detail.status)}
                 </span>
               </div>
             ) : (
@@ -1092,17 +1092,17 @@ export default function POS() {
                           if (e.target.value === "__custom__") { setCustomTable(true); setTable("") }
                           else setTable(e.target.value)
                         }}>
-                        <option value="">Table…</option>
-                        {tables.map((t) => (
-                          <option key={t.table} value={t.table}>
-                            {t.table}{t.seats ? ` (${t.seats})` : ""}{t.bills > 0 ? ` · ${t.bills} bill${t.bills > 1 ? "s" : ""}` : ""}
+                        <option value="">{t("Table…")}</option>
+                        {tables.map((tb) => (
+                          <option key={tb.table} value={tb.table}>
+                            {tb.table}{tb.seats ? ` (${tb.seats})` : ""}{tb.bills > 0 ? ` · ${tb.bills > 1 ? t("{n} bills", { n: tb.bills }) : t("1 bill")}` : ""}
                           </option>
                         ))}
-                        <option value="__custom__">Temp / custom table…</option>
+                        <option value="__custom__">{t("Temp / custom table…")}</option>
                       </select>
                     ) : (
                       <div className="flex gap-1">
-                        <input autoFocus={customTable} className={inputCls} placeholder="Table name"
+                        <input autoFocus={customTable} className={inputCls} placeholder={t("Table name")}
                           value={table} onChange={(e) => setTable(e.target.value)} />
                         {customTable && (
                           <Button variant="ghost" className="!px-2" onClick={() => { setCustomTable(false); setTable("") }}>✕</Button>
@@ -1111,27 +1111,27 @@ export default function POS() {
                     )}
                     <div className="flex items-center gap-1 rounded-lg border border-zinc-300 px-2">
                       <Users className="size-3.5 text-zinc-400" />
-                      <input className="w-full bg-transparent py-1.5 text-sm focus:outline-none" placeholder="Guests"
+                      <input className="w-full bg-transparent py-1.5 text-sm focus:outline-none" placeholder={t("Guests")}
                         inputMode="numeric" value={guests} onChange={(e) => setGuests(e.target.value.replace(/\D/g, ""))} />
                     </div>
                   </div>
                 )}
                 {orderType === "Room Service" && (
                   <RoomPicker rooms={rooms} value={room} onChange={setRoom} onOpen={loadRooms}
-                    placeholder={rooms.length ? "Room…" : "No guests in house"} />
+                    placeholder={rooms.length ? t("Room…") : t("No guests in house")} />
                 )}
                 {orderType === "Dine In" && rooms.length > 0 && (
                   <RoomPicker rooms={rooms} value={room} onChange={setRoom} onOpen={loadRooms}
-                    placeholder="Charge to room (optional)…" />
+                    placeholder={t("Charge to room (optional)…")} />
                 )}
                 {isNewCustomerType && (
                   <>
                     <div className="grid grid-cols-2 gap-2">
-                      <input className={inputCls} placeholder="Customer name" value={custName} onChange={(e) => setCustName(e.target.value)} />
-                      <input className={inputCls} placeholder="Phone" value={custPhone} onChange={(e) => setCustPhone(e.target.value)} />
+                      <input className={inputCls} placeholder={t("Customer name")} value={custName} onChange={(e) => setCustName(e.target.value)} />
+                      <input className={inputCls} placeholder={t("Phone")} value={custPhone} onChange={(e) => setCustPhone(e.target.value)} />
                     </div>
                     {orderType === "Delivery" && (
-                      <input className={inputCls} placeholder="Delivery address" value={custAddr} onChange={(e) => setCustAddr(e.target.value)} />
+                      <input className={inputCls} placeholder={t("Delivery address")} value={custAddr} onChange={(e) => setCustAddr(e.target.value)} />
                     )}
                   </>
                 )}
@@ -1172,13 +1172,13 @@ export default function POS() {
                         )}
                         <span>
                           {Math.round(it.qty)}× {it.item_name}
-                          {!it.voided && it.kot_status !== "New" && <span className="ml-1 text-[10px] text-zinc-400">{it.kot_status}</span>}
+                          {!it.voided && it.kot_status !== "New" && <span className="ml-1 text-[10px] text-zinc-400">{t(it.kot_status)}</span>}
                         </span>
                       </span>
                       <span className="flex items-center gap-1">
                         <span className="tabular-nums">{cur()}{inr(it.amount)}</span>
                         {!splitMode && !it.voided && detail.status !== "Delivered" && (
-                          <button title="Void line" onClick={() => { setVoiding(it); setVoidReason("") }}
+                          <button title={t("Void line")} onClick={() => { setVoiding(it); setVoidReason("") }}
                             className="-my-1 rounded-md p-1.5 text-zinc-300 transition hover:bg-rose-50 hover:text-rose-500">
                             <XCircle className="size-4" />
                           </button>
@@ -1189,12 +1189,12 @@ export default function POS() {
                 </ul>
                 {voiding && (
                   <div className="mb-2 rounded-lg border border-rose-200 bg-rose-50 p-2">
-                    <p className="mb-1 text-xs font-medium text-rose-700">Void {voiding.item_name} — reason required</p>
+                    <p className="mb-1 text-xs font-medium text-rose-700">{t("Void {item} — reason required", { item: voiding.item_name })}</p>
                     <div className="flex gap-1">
-                      <input autoFocus className={inputCls + " !py-1 text-xs"} placeholder="e.g. spilled, wrong item"
+                      <input autoFocus className={inputCls + " !py-1 text-xs"} placeholder={t("e.g. spilled, wrong item")}
                         value={voidReason} onChange={(e) => setVoidReason(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && confirmVoid()} />
-                      <Button variant="outline" className="!px-2 !py-1 text-xs font-semibold text-rose-600" disabled={busy || !voidReason.trim()} onClick={confirmVoid}>Void</Button>
+                      <Button variant="outline" className="!px-2 !py-1 text-xs font-semibold text-rose-600" disabled={busy || !voidReason.trim()} onClick={confirmVoid}>{t("Void")}</Button>
                       <Button variant="ghost" className="!px-2 !py-1 text-xs" onClick={() => setVoiding(null)}>✕</Button>
                     </div>
                   </div>
@@ -1204,12 +1204,12 @@ export default function POS() {
                     <Button className="flex-1" disabled={busy || splitSel.size === 0 ||
                       splitSel.size >= detail.items.filter((i) => !i.voided).length}
                       onClick={confirmSplit}>
-                      <Scissors className="size-4" />Move {splitSel.size || ""} to new bill
+                      <Scissors className="size-4" />{t("Move {n} to new bill", { n: splitSel.size || "" })}
                     </Button>
                     <Button variant="ghost" onClick={() => { setSplitMode(false); setSplitSel(new Set()) }}>✕</Button>
                   </div>
                 )}
-                {cart.length > 0 && <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">New round</h4>}
+                {cart.length > 0 && <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">{t("New round")}</h4>}
               </>
             )}
 
@@ -1221,16 +1221,16 @@ export default function POS() {
                   <div key={l.menu_item} className="border-b border-zinc-100 pb-2">
                     <div className="flex min-h-11 items-center gap-1.5">
                       <span className="min-w-0 flex-1 truncate text-sm font-medium">{l.item_name}</span>
-                      <button onClick={() => setQty(l.menu_item, -1)} aria-label="One less"
+                      <button onClick={() => setQty(l.menu_item, -1)} aria-label={t("One less")}
                         className="grid size-9 shrink-0 place-items-center rounded-lg border border-zinc-300 text-zinc-600 hover:bg-zinc-50"><Minus className="size-4" /></button>
                       <span className="w-6 shrink-0 text-center text-base font-semibold tabular-nums">{l.qty}</span>
-                      <button onClick={() => setQty(l.menu_item, 1)} aria-label="One more"
+                      <button onClick={() => setQty(l.menu_item, 1)} aria-label={t("One more")}
                         className="grid size-9 shrink-0 place-items-center rounded-lg border border-zinc-300 text-zinc-600 hover:bg-zinc-50"><Plus className="size-4" /></button>
                       <span className="w-14 shrink-0 text-right text-sm font-semibold tabular-nums">{cur()}{inr(l.qty * l.price)}</span>
-                      <button onClick={() => setQty(l.menu_item, -l.qty)} aria-label="Remove line"
+                      <button onClick={() => setQty(l.menu_item, -l.qty)} aria-label={t("Remove line")}
                         className="grid size-9 shrink-0 place-items-center rounded-lg text-zinc-300 hover:bg-rose-50 hover:text-rose-500"><Trash2 className="size-4" /></button>
                     </div>
-                    <input className="mt-1 w-full rounded border border-zinc-200 px-2 py-1 text-xs" placeholder="Instructions"
+                    <input className="mt-1 w-full rounded border border-zinc-200 px-2 py-1 text-xs" placeholder={t("Instructions")}
                       value={l.instructions} onChange={(e) => setInstr(l.menu_item, e.target.value)} />
                   </div>
                 ))}
@@ -1249,7 +1249,7 @@ export default function POS() {
                     <input autoFocus className={inputCls + " !w-24 !py-0.5 text-xs"} placeholder={`${cur()}`} inputMode="numeric"
                       value={discount} onChange={(e) => setDiscount(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && applyDiscount()} />
-                    <Button variant="outline" className="!px-2 !py-0.5 text-xs" disabled={busy} onClick={applyDiscount}>OK</Button>
+                    <Button variant="outline" className="!px-2 !py-0.5 text-xs" disabled={busy} onClick={applyDiscount}>{t("OK")}</Button>
                   </span>
                 ) : (
                   <button onClick={() => setDiscOpen(true)} className="flex items-center gap-1 text-xs font-medium text-brand-700 hover:underline">
@@ -1268,7 +1268,7 @@ export default function POS() {
                   <div className="flex justify-between text-xs text-zinc-400"><span>{t("SGST ({rate}%)", { rate: gstRate / 2 })}</span><span className="tabular-nums">{cur()}{inr2(gstAmt / 2)}</span></div>
                 </>
               ) : (
-                <div className="flex justify-between text-xs text-zinc-400"><span>{loc.tax_label} ({gstRate}%)</span><span className="tabular-nums">{cur()}{inr2(gstAmt)}</span></div>
+                <div className="flex justify-between text-xs text-zinc-400"><span>{t("{tax} ({rate}%)", { tax: loc.tax_label, rate: gstRate })}</span><span className="tabular-nums">{cur()}{inr2(gstAmt)}</span></div>
               )}
               <div className="flex items-baseline justify-between border-t border-zinc-100 pt-1 font-bold">
                 <span>{t("Total")}</span>
@@ -1278,15 +1278,15 @@ export default function POS() {
 
             {ncOpen && selected && (
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-2">
-                <p className="mb-1 text-xs font-medium text-amber-800">Complimentary (no charge) - who authorized?</p>
+                <p className="mb-1 text-xs font-medium text-amber-800">{t("Complimentary (no charge) - who authorized?")}</p>
                 <div className="flex gap-1">
                   <select className={inputCls + " !w-28 !py-1 text-xs"} value={ncBy} onChange={(e) => setNcBy(e.target.value)}>
-                    {["Captain", "Chef", "Manager", "GM", "Management", "Owner"].map((w) => <option key={w}>{w}</option>)}
+                    {["Captain", "Chef", "Manager", "GM", "Management", "Owner"].map((w) => <option key={w} value={w}>{t(w)}</option>)}
                   </select>
-                  <input autoFocus className={inputCls + " !py-1 text-xs"} placeholder="Reference (birthday, complaint #, promo…)"
+                  <input autoFocus className={inputCls + " !py-1 text-xs"} placeholder={t("Reference (birthday, complaint #, promo…)")}
                     value={ncNote} onChange={(e) => setNcNote(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && saveNc()} />
-                  <Button variant="outline" className="!px-2 !py-1 text-xs font-semibold text-amber-700" disabled={busy} onClick={() => saveNc()}>NC</Button>
+                  <Button variant="outline" className="!px-2 !py-1 text-xs font-semibold text-amber-700" disabled={busy} onClick={() => saveNc()}>{t("NC")}</Button>
                   <Button variant="ghost" className="!px-2 !py-1 text-xs" onClick={() => setNcOpen(false)}>✕</Button>
                 </div>
               </div>
@@ -1294,12 +1294,12 @@ export default function POS() {
 
             {cancelling && (
               <div className="rounded-lg border border-rose-200 bg-rose-50 p-2">
-                <p className="mb-1 text-xs font-medium text-rose-700">Cancel this order - reason required</p>
+                <p className="mb-1 text-xs font-medium text-rose-700">{t("Cancel this order - reason required")}</p>
                 <div className="flex gap-1">
-                  <input autoFocus className={inputCls + " !py-1 text-xs"} placeholder="e.g. guest left"
+                  <input autoFocus className={inputCls + " !py-1 text-xs"} placeholder={t("e.g. guest left")}
                     value={cancelReason} onChange={(e) => setCancelReason(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && confirmCancel()} />
-                  <Button variant="outline" className="!px-2 !py-1 text-xs font-semibold text-rose-600" disabled={busy || !cancelReason.trim()} onClick={confirmCancel}>Cancel order</Button>
+                  <Button variant="outline" className="!px-2 !py-1 text-xs font-semibold text-rose-600" disabled={busy || !cancelReason.trim()} onClick={confirmCancel}>{t("Cancel order")}</Button>
                   <Button variant="ghost" className="!px-2 !py-1 text-xs" onClick={() => setCancelling(false)}>✕</Button>
                 </div>
               </div>
@@ -1352,57 +1352,57 @@ export default function POS() {
               <div className="space-y-1.5 rounded-xl border border-brand-200 bg-brand-50/60 p-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wide text-brand-800">
-                    Settle · {cur()}{inr2(grand)}
+                    {t("Settle")} · {cur()}{inr2(grand)}
                   </span>
-                  <button className="rounded p-1 text-zinc-400 hover:text-zinc-700" aria-label="Close"
+                  <button className="rounded p-1 text-zinc-400 hover:text-zinc-700" aria-label={t("Close")}
                     onClick={() => { setSettling(false); setSheetNc(false) }}>
                     <XCircle className="size-4" />
                   </button>
                 </div>
                 {detail.nc ? (
                   <Button className="h-12 w-full" disabled={busy} onClick={settleDeliver}>
-                    <Gift className="size-4" />Close complimentary bill · {cur()}0
+                    <Gift className="size-4" />{t("Close complimentary bill")} · {cur()}0
                   </Button>
                 ) : sheetNc ? (
                   <div className="space-y-1.5">
-                    <p className="text-xs font-medium text-amber-800">Complimentary (no charge) - who authorized?</p>
+                    <p className="text-xs font-medium text-amber-800">{t("Complimentary (no charge) - who authorized?")}</p>
                     <div className="flex gap-1.5">
                       <select className={inputCls + " !w-28 !py-1 text-xs"} value={ncBy} onChange={(e) => setNcBy(e.target.value)}>
-                        {["Captain", "Chef", "Manager", "GM", "Management", "Owner"].map((w) => <option key={w}>{w}</option>)}
+                        {["Captain", "Chef", "Manager", "GM", "Management", "Owner"].map((w) => <option key={w} value={w}>{t(w)}</option>)}
                       </select>
-                      <input autoFocus className={inputCls + " !py-1 text-xs"} placeholder="Reference (birthday, complaint #, promo…)"
+                      <input autoFocus className={inputCls + " !py-1 text-xs"} placeholder={t("Reference (birthday, complaint #, promo…)")}
                         value={ncNote} onChange={(e) => setNcNote(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && settleNc()} />
                     </div>
                     <div className="flex gap-1.5">
                       <Button className="h-11 flex-1" disabled={busy} onClick={settleNc}>
-                        <Gift className="size-4" />Mark NC & close at {cur()}0
+                        <Gift className="size-4" />{t("Mark NC & close at {amt}", { amt: `${cur()}0` })}
                       </Button>
-                      <Button variant="ghost" className="h-11" onClick={() => setSheetNc(false)}>Back</Button>
+                      <Button variant="ghost" className="h-11" onClick={() => setSheetNc(false)}>{t("Back")}</Button>
                     </div>
                   </div>
                 ) : (
                   <>
                     <div className={cn("grid gap-1.5", posModes.length > 2 ? "grid-cols-3" : "grid-cols-2")}>
                       {posModes.map((m) => (
-                        <Button key={m} className="h-12 justify-center text-base" disabled={busy} onClick={() => settle(m)}>{m}</Button>
+                        <Button key={m} className="h-12 justify-center text-base" disabled={busy} onClick={() => settle(m)}>{t(m)}</Button>
                       ))}
                     </div>
                     {detail.room ? (
                       <Button variant="outline" className="h-11 w-full" disabled={busy} onClick={settleDeliver}>
-                        <BedDouble className="size-4" />Deliver & post to Room {detail.room.split("-").pop()}
+                        <BedDouble className="size-4" />{t("Deliver & post to Room {n}", { n: detail.room.split("-").pop() ?? "" })}
                       </Button>
                     ) : detail.order_type === "Dine In" && rooms.length > 0 && (
                       <div className="flex gap-1.5">
                         <RoomPicker rooms={rooms} value={postRoom} onChange={setPostRoom} onOpen={loadRooms}
-                          placeholder="Charge to a guest's room…" />
+                          placeholder={t("Charge to a guest's room…")} />
                         <Button variant="outline" className="h-10 shrink-0" disabled={busy || !postRoom} onClick={chargeToRoom}>
-                          <BedDouble className="size-4" />Post
+                          <BedDouble className="size-4" />{t("Post")}
                         </Button>
                       </div>
                     )}
                     <Button variant="outline" className="h-11 w-full text-amber-700" disabled={busy} onClick={() => setSheetNc(true)}>
-                      <Gift className="size-4" />Complimentary — close at {cur()}0
+                      <Gift className="size-4" />{t("Complimentary — close at {amt}", { amt: `${cur()}0` })}
                     </Button>
                   </>
                 )}
@@ -1426,7 +1426,7 @@ export default function POS() {
         <div className="sticky bottom-2 z-30 flex shrink-0 items-center gap-2 rounded-xl border border-zinc-200 bg-white p-2 shadow-lg md:hidden">
           <button onClick={() => setMobilePane("bill")} className="min-w-0 flex-1 text-left">
             <div className="truncate text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
-              {Math.round(billItemCount)} item{billItemCount === 1 ? "" : "s"}
+              {billItemCount === 1 ? t("1 item") : t("{n} items", { n: Math.round(billItemCount) })}
               {selected && detail ? ` · ${orderLabel(detail)}` : ""}
             </div>
             <div className="text-lg font-bold tabular-nums">{cur()}{inr2(grand)}</div>

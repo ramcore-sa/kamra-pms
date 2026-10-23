@@ -353,8 +353,8 @@ export default function CashierTill() {
                 <tbody>
                   {(session?.transactions || []).map((tx) => (
                     <tr key={tx.name} className="border-t border-zinc-100">
-                      <td className="py-2 pr-3">{tx.kind}</td>
-                      <td className="py-2 pr-3">{tx.mode}</td>
+                      <td className="py-2 pr-3">{t(tx.kind)}</td>
+                      <td className="py-2 pr-3">{t(tx.mode)}</td>
                       <td className="py-2 pr-3 tabular-nums">{inr(tx.amount)}</td>
                       <td className="py-2 pr-3 text-zinc-500">
                         {tx.reference || tx.folio || tx.pos_order || "—"}

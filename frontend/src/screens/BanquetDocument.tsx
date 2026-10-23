@@ -19,6 +19,7 @@ import {
   type MenuCard,
 } from "../lib/api"
 import { serverError } from "../lib/resource"
+import { useT } from "../lib/i18n"
 import { Button } from "../components/ui/button"
 import { taxLabel } from "../lib/money"
 import { Empty, ErrorNote, inrExact } from "./banquet/shared"
@@ -37,6 +38,7 @@ const KIND_LABEL: Record<DocumentKind, string> = {
 const MENU_CARD = "menu_card"
 
 export default function BanquetDocument() {
+  const { t } = useT()
   const { name = "", kind = "quote" } = useParams()
   const [doc, setDoc] = useState<Doc | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -59,9 +61,9 @@ export default function BanquetDocument() {
     return card ? (
       <MenuCardSheet name={name} card={card} />
     ) : (
-      <Empty>Loading…</Empty>
+      <Empty>{t("Loading…")}</Empty>
     )
-  if (!doc) return <Empty>Loading…</Empty>
+  if (!doc) return <Empty>{t("Loading…")}</Empty>
 
   const showsMoney = kind !== "pack_list" && kind !== "beo"
 
@@ -73,7 +75,7 @@ export default function BanquetDocument() {
           className="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-800"
         >
           <ArrowLeft className="size-4" />
-          Back to the function
+          {t("Back to the function")}
         </Link>
         <div className="flex flex-wrap items-center gap-1.5">
           {KINDS.map((k) => (
@@ -87,7 +89,7 @@ export default function BanquetDocument() {
                   : "text-zinc-500 hover:bg-zinc-100")
               }
             >
-              {KIND_LABEL[k]}
+              {t(KIND_LABEL[k])}
             </Link>
           ))}
           {EXTRA_KINDS.map((k) => (
@@ -101,12 +103,12 @@ export default function BanquetDocument() {
                   : "text-zinc-500 hover:bg-zinc-100")
               }
             >
-              Menu card
+              {t("Menu card")}
             </Link>
           ))}
           <Button onClick={() => window.print()}>
             <Printer className="size-4" />
-            Print
+            {t("Print")}
           </Button>
         </div>
       </div>
@@ -137,8 +139,8 @@ export default function BanquetDocument() {
                 {doc.receipts.map((r, i) => (
                   <tr key={i} className="border-b border-zinc-100">
                     <td className="py-1.5 text-zinc-500">{r.date}</td>
-                    <td className="py-1.5">{r.kind}</td>
-                    <td className="py-1.5 text-zinc-500">{r.mode}</td>
+                    <td className="py-1.5">{t(r.kind)}</td>
+                    <td className="py-1.5 text-zinc-500">{t(r.mode)}</td>
                     <td className="py-1.5 text-zinc-400">{r.reference}</td>
                     <td className="py-1.5 text-right tabular-nums">
                       {inrExact(r.amount)}
@@ -155,34 +157,34 @@ export default function BanquetDocument() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-zinc-200 text-left text-xs uppercase tracking-wider text-zinc-400">
-                  <th className="py-1.5 font-medium">Milestone</th>
-                  <th className="py-1.5 font-medium">Due</th>
-                  <th className="py-1.5 text-right font-medium">Amount</th>
-                  <th className="py-1.5 text-right font-medium">Status</th>
+                  <th className="py-1.5 font-medium">{t("Milestone")}</th>
+                  <th className="py-1.5 font-medium">{t("Due")}</th>
+                  <th className="py-1.5 text-right font-medium">{t("Amount")}</th>
+                  <th className="py-1.5 text-right font-medium">{t("Status")}</th>
                 </tr>
               </thead>
               <tbody>
-                {doc.terms.map((t, i) => (
+                {doc.terms.map((term, i) => (
                   <tr key={i} className="border-b border-zinc-100">
-                    <td className="py-1.5">{t.milestone}</td>
-                    <td className="py-1.5 text-zinc-500">{t.due_date ?? "-"}</td>
+                    <td className="py-1.5">{term.milestone}</td>
+                    <td className="py-1.5 text-zinc-500">{term.due_date ?? "-"}</td>
                     <td className="py-1.5 text-right tabular-nums">
-                      {inrExact(t.amount)}
-                      {t.percent ? (
-                        <span className="text-zinc-400"> ({t.percent}%)</span>
+                      {inrExact(term.amount)}
+                      {term.percent ? (
+                        <span className="text-zinc-400"> ({term.percent}%)</span>
                       ) : null}
                     </td>
                     <td
                       className={
                         "py-1.5 text-right " +
-                        (t.status === "Received"
+                        (term.status === "Received"
                           ? "text-emerald-700"
-                          : t.status === "Overdue"
+                          : term.status === "Overdue"
                             ? "text-rose-700"
                             : "text-zinc-500")
                       }
                     >
-                      {t.status}
+                      {t(term.status)}
                     </td>
                   </tr>
                 ))}
@@ -204,7 +206,7 @@ export default function BanquetDocument() {
                         {o.detail && (
                           <span className="text-zinc-400"> - {o.detail}</span>
                         )}
-                        <span className="text-zinc-400"> ({o.owner_side})</span>
+                        <span className="text-zinc-400"> ({t(o.owner_side)})</span>
                       </span>
                       {o.price_impact ? (
                         <span className="shrink-0 tabular-nums text-zinc-500">
@@ -251,7 +253,7 @@ export default function BanquetDocument() {
         )}
         {doc.signed_on && (
           <p className="mt-4 text-xs text-zinc-400">
-            Signed on {doc.signed_on}.
+            {t("Signed on {date}.", { date: String(doc.signed_on) })}
           </p>
         )}
 
@@ -265,9 +267,9 @@ export default function BanquetDocument() {
             <div className="shrink-0 text-center">
               <div className="mb-1 h-10 w-44 border-b border-zinc-300" />
               <p className="text-xs">
-                For {doc.property.legal_name || doc.property.property_name}
+                {t("For {name}", { name: doc.property.legal_name || doc.property.property_name || "" })}
               </p>
-              <p className="text-[11px] text-zinc-400">Authorised signatory</p>
+              <p className="text-[11px] text-zinc-400">{t("Authorised signatory")}</p>
             </div>
           </footer>
         )}
@@ -285,10 +287,12 @@ function Section({
   title: string
   children: React.ReactNode
 }) {
+  // Callers pass the English heading; translating here covers every section.
+  const { t } = useT()
   return (
     <section className="mt-6 break-inside-avoid">
       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-        {title}
+        {t(title)}
       </h3>
       {children}
     </section>
@@ -296,6 +300,7 @@ function Section({
 }
 
 function Letterhead({ doc }: { doc: Doc }) {
+  const { t } = useT()
   const p = doc.property
   const h = doc.header
   return (
@@ -372,7 +377,7 @@ function Letterhead({ doc }: { doc: Doc }) {
           </table>
           {!h.is_final && h.kind !== "pack_list" && h.kind !== "beo" && (
             <p className="mt-1.5 max-w-48 text-[11px] text-amber-700">
-              Draft — no number issued yet.
+              {t("Draft — no number issued yet.")}
             </p>
           )}
         </div>
@@ -390,9 +395,10 @@ function Meta({
   value: string
   mono?: boolean
 }) {
+  const { t } = useT()
   return (
     <tr>
-      <td className="pr-3 text-right align-top text-zinc-400">{label}</td>
+      <td className="pr-3 text-right align-top text-zinc-400">{t(label)}</td>
       <td className={"text-left font-medium" + (mono ? " font-mono" : "")}>
         {value}
       </td>
@@ -401,13 +407,14 @@ function Meta({
 }
 
 function Parties({ doc }: { doc: Doc }) {
+  const { t } = useT()
   const c = doc.customer
   const e = doc.event
   return (
     <div className="mt-4 grid gap-6 sm:grid-cols-2">
       <div>
         <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-          For
+          {t("For")}
         </h3>
         <p className="mt-1 font-medium">{c.name}</p>
         {c.company && <p className="text-zinc-600">{c.company}</p>}
@@ -422,19 +429,19 @@ function Parties({ doc }: { doc: Doc }) {
         {c.gstin && (
           <p className="text-xs text-zinc-500">
             {taxLabel()}: {c.gstin}
-            {c.place_of_supply ? ` · Place of supply: ${c.place_of_supply}` : ""}
+            {c.place_of_supply ? ` · ${t("Place of supply: {place}", { place: c.place_of_supply })}` : ""}
           </p>
         )}
       </div>
       <div>
         <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-          The function
+          {t("The function")}
         </h3>
         <p className="mt-1 font-medium">
-          {String(e.event_name || e.event_type)}
+          {e.event_name ? String(e.event_name) : t(String(e.event_type))}
         </p>
         <dl className="mt-1 space-y-0.5 text-xs text-zinc-600">
-          <Line k="Venue" v={`${e.venue}${e.venue_type ? ` (${e.venue_type})` : ""}`} />
+          <Line k="Venue" v={`${e.venue}${e.venue_type ? ` (${t(String(e.venue_type))})` : ""}`} />
           <Line
             k="Date"
             v={
@@ -448,25 +455,25 @@ function Parties({ doc }: { doc: Doc }) {
             <Line
               k="Time"
               v={`${e.start_time} – ${e.end_time}${
-                e.hours ? ` (${e.hours} hrs)` : ""
+                e.hours ? ` (${t("{n} hrs", { n: String(e.hours) })})` : ""
               }`}
             />
           ) : null}
           <Line
             k="Pax"
             v={
-              `${e.billable_pax} billable` +
-              (e.pax_guaranteed ? ` · ${e.pax_guaranteed} guaranteed` : "") +
-              (e.pax_actual ? ` · ${e.pax_actual} actual` : "")
+              t("{n} billable", { n: String(e.billable_pax) }) +
+              (e.pax_guaranteed ? ` · ${t("{n} guaranteed", { n: String(e.pax_guaranteed) })}` : "") +
+              (e.pax_actual ? ` · ${t("{n} actual", { n: String(e.pax_actual) })}` : "")
             }
           />
-          {e.setup_style ? <Line k="Setup" v={String(e.setup_style)} /> : null}
+          {e.setup_style ? <Line k="Setup" v={t(String(e.setup_style))} /> : null}
           {e.green_room ? (
             <Line
               k="Green room"
               v={
                 String(e.green_room) +
-                (e.green_room_complimentary ? " (complimentary)" : "")
+                (e.green_room_complimentary ? ` (${t("complimentary")})` : "")
               }
             />
           ) : null}
@@ -477,15 +484,17 @@ function Parties({ doc }: { doc: Doc }) {
 }
 
 function Line({ k, v }: { k: string; v: string }) {
+  const { t } = useT()
   return (
     <div className="flex gap-2">
-      <dt className="w-20 shrink-0 text-zinc-400">{k}</dt>
+      <dt className="w-20 shrink-0 text-zinc-400">{t(k)}</dt>
       <dd>{v}</dd>
     </div>
   )
 }
 
 function RunSheet({ doc }: { doc: Doc }) {
+  const { t } = useT()
   const e = doc.event
   const moments = [
     ["Setup access from", e.setup_from],
@@ -499,7 +508,7 @@ function RunSheet({ doc }: { doc: Doc }) {
         {moments.map(([k, v]) => (
           <div key={k} className="rounded-lg border border-zinc-200 px-3 py-2">
             <p className="text-[11px] uppercase tracking-wider text-zinc-400">
-              {k}
+              {t(k)}
             </p>
             <p className="mt-0.5 font-medium tabular-nums">
               {String(v).replace("T", " ").slice(0, 16)}
@@ -517,6 +526,7 @@ function RunSheet({ doc }: { doc: Doc }) {
 }
 
 function Lines({ doc, showsMoney }: { doc: Doc; showsMoney: boolean }) {
+  const { t } = useT()
   const all = [...doc.lines, ...doc.complimentary]
   if (all.length === 0) return null
   return (
@@ -524,18 +534,18 @@ function Lines({ doc, showsMoney }: { doc: Doc; showsMoney: boolean }) {
       <table className="w-full">
         <thead>
           <tr className="border-b border-zinc-200 text-left text-xs uppercase tracking-wider text-zinc-400">
-            <th className="py-1.5 font-medium">Item</th>
+            <th className="py-1.5 font-medium">{t("Item")}</th>
             {showsMoney && (
               <th className="py-1.5 font-medium">
                 {doc.header.service_code_label}
               </th>
             )}
-            <th className="py-1.5 text-right font-medium">Qty</th>
+            <th className="py-1.5 text-right font-medium">{t("Qty")}</th>
             {showsMoney && (
               <>
-                <th className="py-1.5 text-right font-medium">Rate</th>
+                <th className="py-1.5 text-right font-medium">{t("Rate")}</th>
                 <th className="py-1.5 text-right font-medium">{taxLabel()}</th>
-                <th className="py-1.5 text-right font-medium">Amount</th>
+                <th className="py-1.5 text-right font-medium">{t("Amount")}</th>
               </>
             )}
           </tr>
@@ -549,7 +559,7 @@ function Lines({ doc, showsMoney }: { doc: Doc; showsMoney: boolean }) {
                 </span>
                 {!l.chargeable && (
                   <span className="ml-1.5 rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">
-                    complimentary
+                    {t("complimentary")}
                   </span>
                 )}
                 {l.description && (
@@ -566,7 +576,7 @@ function Lines({ doc, showsMoney }: { doc: Doc; showsMoney: boolean }) {
               )}
               <td className="py-1.5 text-right tabular-nums">
                 {l.qty % 1 === 0 ? l.qty : l.qty.toFixed(2)}{" "}
-                <span className="text-zinc-400">{l.uom}</span>
+                <span className="text-zinc-400">{t(l.uom)}</span>
               </td>
               {showsMoney && (
                 <>
@@ -590,6 +600,7 @@ function Lines({ doc, showsMoney }: { doc: Doc; showsMoney: boolean }) {
 }
 
 function Menus({ doc }: { doc: Doc }) {
+  const { t } = useT()
   if (!doc.menus?.length) return null
   return (
     <Section title="Menus">
@@ -599,22 +610,22 @@ function Menus({ doc }: { doc: Doc }) {
             <p className="font-medium">
               {m.menu_name}
               <span className="ml-2 text-xs font-normal text-zinc-400">
-                {m.meal_period} · {m.food_type} · {m.service_style} · {m.pax} pax
+                {t(m.meal_period)} · {t(m.food_type)} · {t(m.service_style)} · {t("{n} pax", { n: m.pax })}
                 {m.menu_code ? ` · ${m.menu_code}` : ""}
-                {m.chargeable ? "" : " · complimentary"}
+                {m.chargeable ? "" : ` · ${t("complimentary")}`}
               </span>
             </p>
             <ul className="mt-1 space-y-0.5">
               {m.courses.map((c, j) => (
                 <li key={j} className="flex gap-2 text-xs">
                   <span className="w-36 shrink-0 font-medium text-zinc-500">
-                    {c.course}
+                    {t(c.course)}
                     {c.is_live_counter && (
-                      <span className="ml-1 text-amber-700">live</span>
+                      <span className="ml-1 text-amber-700">{t("live")}</span>
                     )}
                     {c.choice_of ? (
                       <span className="ml-1 text-zinc-400">
-                        (pick {c.choice_of})
+                        ({t("pick {n}", { n: c.choice_of })})
                       </span>
                     ) : null}
                   </span>
@@ -624,11 +635,11 @@ function Menus({ doc }: { doc: Doc }) {
             </ul>
             {m.inclusions && (
               <p className="mt-1 text-xs text-zinc-400">
-                Includes: {m.inclusions}
+                {t("Includes: {list}", { list: m.inclusions })}
               </p>
             )}
             {m.exclusions && (
-              <p className="text-xs text-zinc-400">Excludes: {m.exclusions}</p>
+              <p className="text-xs text-zinc-400">{t("Excludes: {list}", { list: m.exclusions })}</p>
             )}
           </div>
         ))}
@@ -638,25 +649,27 @@ function Menus({ doc }: { doc: Doc }) {
 }
 
 function PackList({ doc }: { doc: Doc }) {
+  const { t } = useT()
   const p = doc.pack
   if (!p) return null
   return (
     <>
       <Section title="Delivery">
+        {/* Whole sentences, not fragments around bold spans: Arabic needs
+            to place the venue and the times itself. */}
         <p className="text-zinc-600">
-          To <span className="font-medium">{p.venue}</span> by{" "}
-          <span className="font-medium tabular-nums">
-            {p.deliver_by.replace("T", " ").slice(0, 16)}
-          </span>
-          {p.collect_after && (
-            <>
-              , collected after{" "}
-              <span className="font-medium tabular-nums">
-                {p.collect_after.replace("T", " ").slice(0, 16)}
-              </span>
-            </>
-          )}
-          . {p.total_items} item{p.total_items === 1 ? "" : "s"}.
+          {t("To {venue} by {time}", {
+            venue: p.venue,
+            time: p.deliver_by.replace("T", " ").slice(0, 16),
+          })}
+          {p.collect_after &&
+            `, ${t("collected after {time}", {
+              time: p.collect_after.replace("T", " ").slice(0, 16),
+            })}`}
+          {". "}
+          {p.total_items === 1
+            ? t("1 item.")
+            : t("{n} items.", { n: p.total_items })}
         </p>
       </Section>
       {p.groups.map((g) => (
@@ -672,7 +685,7 @@ function PackList({ doc }: { doc: Doc }) {
                     {it.item_name}
                     {!it.chargeable && (
                       <span className="ml-1.5 text-xs text-emerald-700">
-                        (complimentary)
+                        ({t("complimentary")})
                       </span>
                     )}
                     {it.description && (
@@ -684,7 +697,7 @@ function PackList({ doc }: { doc: Doc }) {
                   </td>
                   <td className="py-1.5 text-right tabular-nums">
                     {it.qty % 1 === 0 ? it.qty : it.qty.toFixed(2)}{" "}
-                    <span className="text-zinc-400">{it.uom}</span>
+                    <span className="text-zinc-400">{t(it.uom)}</span>
                   </td>
                 </tr>
               ))}
@@ -697,22 +710,23 @@ function PackList({ doc }: { doc: Doc }) {
 }
 
 function TaxBreakup({ doc }: { doc: Doc }) {
+  const { t } = useT()
   const rows = doc.tax_breakup ?? []
   if (!rows.length) return null
   const label = doc.header.tax_label ?? "GST"
   return (
-    <Section title={`${label} breakup`}>
+    <Section title={t("{tax} breakup", { tax: label })}>
       <table className="w-full">
         <thead>
           <tr className="border-b border-zinc-200 text-left text-xs uppercase tracking-wider text-zinc-400">
-            <th className="py-1.5 font-medium">Rate</th>
-            <th className="py-1.5 text-right font-medium">Taxable</th>
+            <th className="py-1.5 font-medium">{t("Rate")}</th>
+            <th className="py-1.5 text-right font-medium">{t("Taxable")}</th>
             {rows[0].parts.map((p) => (
               <th key={p.label} className="py-1.5 text-right font-medium">
                 {p.label}
               </th>
             ))}
-            <th className="py-1.5 text-right font-medium">Total {label}</th>
+            <th className="py-1.5 text-right font-medium">{t("Total {tax}", { tax: label })}</th>
           </tr>
         </thead>
         <tbody>
@@ -740,38 +754,40 @@ function TaxBreakup({ doc }: { doc: Doc }) {
 }
 
 function Totals({ doc }: { doc: Doc }) {
-  const t = doc.totals
+  const { t } = useT()
+  const tot = doc.totals
   return (
     <section className="mt-6 flex justify-end break-inside-avoid">
       <div className="w-72 space-y-1">
-        <Amt k="Subtotal" v={t.subtotal} />
-        {t.discount > 0 && <Amt k="Discount" v={-t.discount} />}
-        <Amt k="Taxable" v={t.taxable} />
-        {t.tax_summary.map((s) => (
+        <Amt k="Subtotal" v={tot.subtotal} />
+        {tot.discount > 0 && <Amt k="Discount" v={-tot.discount} />}
+        <Amt k="Taxable" v={tot.taxable} />
+        {tot.tax_summary.map((s) => (
           <Amt
             key={s.gst_rate}
-            k={`${taxLabel()} @ ${s.gst_rate}%`}
+            k={t("{tax} @ {rate}%", { tax: taxLabel(), rate: s.gst_rate })}
             v={s.tax}
             muted
           />
         ))}
         <div className="flex justify-between border-t border-zinc-300 pt-1 font-semibold">
-          <span>Total</span>
-          <span className="tabular-nums">{inrExact(t.grand_total)}</span>
+          <span>{t("Total")}</span>
+          <span className="tabular-nums">{inrExact(tot.grand_total)}</span>
         </div>
-        {t.received > 0 && (
+        {tot.received > 0 && (
           <>
-            <Amt k="Received" v={-t.received} />
+            <Amt k="Received" v={-tot.received} />
             <div className="flex justify-between border-t border-zinc-200 pt-1 font-semibold">
-              <span>Balance due</span>
-              <span className="tabular-nums">{inrExact(t.balance_due)}</span>
+              <span>{t("Balance due")}</span>
+              <span className="tabular-nums">{inrExact(tot.balance_due)}</span>
             </div>
           </>
         )}
-        {t.complimentary_value > 0 && (
+        {tot.complimentary_value > 0 && (
           <p className="pt-2 text-xs text-zinc-400">
-            Complimentary items worth {inrExact(t.complimentary_value)} are
-            included at no charge.
+            {t("Complimentary items worth {amt} are included at no charge.", {
+              amt: inrExact(tot.complimentary_value),
+            })}
           </p>
         )}
         {doc.header.amount_in_words && (
@@ -785,9 +801,10 @@ function Totals({ doc }: { doc: Doc }) {
 }
 
 function Amt({ k, v, muted }: { k: string; v: number; muted?: boolean }) {
+  const { t } = useT()
   return (
     <div className={"flex justify-between " + (muted ? "text-zinc-500" : "")}>
-      <span className="text-zinc-500">{k}</span>
+      <span className="text-zinc-500">{t(k)}</span>
       <span className="tabular-nums">{inrExact(v)}</span>
     </div>
   )
@@ -800,6 +817,7 @@ function Amt({ k, v, muted }: { k: string; v: number; muted?: boolean }) {
  *  off it is the point: the moment a plate rate appears, the conversation
  *  stops being about the food. */
 function MenuCardSheet({ name, card }: { name: string; card: MenuCard }) {
+  const { t } = useT()
   const e = card.event
   return (
     <div className="mx-auto max-w-3xl">
@@ -809,7 +827,7 @@ function MenuCardSheet({ name, card }: { name: string; card: MenuCard }) {
           className="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-800"
         >
           <ArrowLeft className="size-4" />
-          Back to the function
+          {t("Back to the function")}
         </Link>
         <div className="flex items-center gap-1.5">
           {KINDS.map((k) => (
@@ -818,15 +836,15 @@ function MenuCardSheet({ name, card }: { name: string; card: MenuCard }) {
               to={`/banquet/${encodeURIComponent(name)}/${k}`}
               className="rounded-lg px-2.5 py-1.5 text-sm font-medium text-zinc-500 hover:bg-zinc-100"
             >
-              {KIND_LABEL[k]}
+              {t(KIND_LABEL[k])}
             </Link>
           ))}
           <span className="rounded-lg bg-zinc-900 px-2.5 py-1.5 text-sm font-medium text-white">
-            Menu card
+            {t("Menu card")}
           </span>
           <Button onClick={() => window.print()}>
             <Printer className="size-4" />
-            Print
+            {t("Print")}
           </Button>
         </div>
       </div>
@@ -850,18 +868,18 @@ function MenuCardSheet({ name, card }: { name: string; card: MenuCard }) {
         <dl className="mt-4 grid gap-x-8 gap-y-1 text-xs sm:grid-cols-2">
           {(
             [
-              ["Function", String(e.event_name || e.event_type || "")],
+              ["Function", e.event_name ? String(e.event_name) : e.event_type ? t(String(e.event_type)) : ""],
               ["Customer", String(e.customer ?? "")],
               ["Date", String(e.event_date ?? "")],
-              ["Hall / session", `${e.venue ?? ""} · ${e.session ?? ""}`],
+              ["Hall / session", `${e.venue ?? ""} · ${e.session ? t(String(e.session)) : ""}`],
               ["Covers", String(e.pax ?? "")],
-              ["Setup", String(e.setup_style ?? "")],
+              ["Setup", e.setup_style ? t(String(e.setup_style)) : ""],
             ] as [string, string][]
           )
             .filter(([, v]) => v.trim() && v.trim() !== "·")
             .map(([k, v]) => (
               <div key={k} className="flex gap-2">
-                <dt className="w-24 shrink-0 text-zinc-400">{k}</dt>
+                <dt className="w-24 shrink-0 text-zinc-400">{t(k)}</dt>
                 <dd className="font-medium">{v}</dd>
               </div>
             ))}
@@ -870,7 +888,7 @@ function MenuCardSheet({ name, card }: { name: string; card: MenuCard }) {
         <div className="mt-8 space-y-8">
           {card.menus.length === 0 && (
             <p className="text-center text-sm text-zinc-400">
-              No menu chosen yet.
+              {t("No menu chosen yet.")}
             </p>
           )}
           {card.menus.map((m, i) => (
@@ -881,17 +899,18 @@ function MenuCardSheet({ name, card }: { name: string; card: MenuCard }) {
               <p className="mt-0.5 text-[11px] text-zinc-400">
                 {[m.meal_period, m.food_type, m.service_style, m.cuisine]
                   .filter(Boolean)
+                  .map((x) => t(String(x)))
                   .join(" · ")}
-                {m.chargeable ? "" : " · complimentary"}
+                {m.chargeable ? "" : ` · ${t("complimentary")}`}
               </p>
               <div className="mt-4 space-y-3">
                 {m.courses.map((c, j) => (
                   <div key={j}>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
-                      {c.course}
-                      {c.choice_of ? ` — choose ${c.choice_of}` : ""}
+                      {t(c.course)}
+                      {c.choice_of ? ` — ${t("choose {n}", { n: c.choice_of })}` : ""}
                       {c.is_live_counter && (
-                        <span className="ml-1 text-amber-600">live</span>
+                        <span className="ml-1 text-amber-600">{t("live")}</span>
                       )}
                     </p>
                     <p className="mt-0.5 text-sm leading-relaxed">{c.dishes}</p>
@@ -900,7 +919,7 @@ function MenuCardSheet({ name, card }: { name: string; card: MenuCard }) {
               </div>
               {m.inclusions && (
                 <p className="mt-3 text-[11px] text-zinc-400">
-                  Includes {m.inclusions}
+                  {t("Includes {list}", { list: m.inclusions })}
                 </p>
               )}
             </section>
@@ -909,13 +928,13 @@ function MenuCardSheet({ name, card }: { name: string; card: MenuCard }) {
           {card.extras.length > 0 && (
             <section className="break-inside-avoid text-center">
               <h2 className="text-sm font-semibold uppercase tracking-[0.2em]">
-                Also being served
+                {t("Also being served")}
               </h2>
               <ul className="mt-2 space-y-0.5 text-sm">
                 {card.extras.map((x, i) => (
                   <li key={i}>
                     {x.item_name}
-                    {x.chargeable ? "" : " (complimentary)"}
+                    {x.chargeable ? "" : ` (${t("complimentary")})`}
                   </li>
                 ))}
               </ul>

@@ -5,6 +5,7 @@ import { useCashierAuth } from "../lib/cashierAuth"
 import { Button } from "../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { moneyLocale } from "../lib/money"
+import { useT } from "../lib/i18n"
 
 const inr = (n: unknown) =>
   Number(n ?? 0).toLocaleString(moneyLocale(), { maximumFractionDigits: 0 })
@@ -19,6 +20,7 @@ const CATS = [
 
 export default function PettyCash() {
   const { withPin } = useCashierAuth()
+  const { t } = useT()
   const [rows, setRows] = useState<Row[]>([])
   const [payee, setPayee] = useState("")
   const [amount, setAmount] = useState("")
@@ -71,25 +73,25 @@ export default function PettyCash() {
     <div className="mx-auto max-w-4xl space-y-4 p-4 sm:p-6">
       <div>
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-          Cashier
+          {t("Cashier")}
         </p>
-        <h1 className="text-2xl font-semibold">Petty Cash</h1>
+        <h1 className="text-2xl font-semibold">{t("Petty Cash")}</h1>
       </div>
       {err ? <p className="text-sm text-rose-600">{err}</p> : null}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">New voucher</CardTitle>
+          <CardTitle className="text-base">{t("New voucher")}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2">
           <input
             className="rounded-lg border border-zinc-300 px-3 py-2 text-sm"
-            placeholder="Payee"
+            placeholder={t("Payee")}
             value={payee}
             onChange={(e) => setPayee(e.target.value)}
           />
           <input
             className="rounded-lg border border-zinc-300 px-3 py-2 text-sm"
-            placeholder="Amount"
+            placeholder={t("Amount")}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
@@ -99,12 +101,12 @@ export default function PettyCash() {
             onChange={(e) => setCategory(e.target.value)}
           >
             {CATS.map((c) => (
-              <option key={c}>{c}</option>
+              <option key={c} value={c}>{t(c)}</option>
             ))}
           </select>
           <input
             className="rounded-lg border border-zinc-300 px-3 py-2 text-sm sm:col-span-2"
-            placeholder="Reason"
+            placeholder={t("Reason")}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />
@@ -112,7 +114,7 @@ export default function PettyCash() {
             disabled={busy || !payee || !amount || !reason}
             onClick={() => void submit()}
           >
-            Post voucher
+            {t("Post voucher")}
           </Button>
         </CardContent>
       </Card>
@@ -120,11 +122,11 @@ export default function PettyCash() {
         <table className="w-full text-left text-sm">
           <thead className="border-b text-xs uppercase text-zinc-400">
             <tr>
-              <th className="px-3 py-2">Date</th>
-              <th className="px-3 py-2">Payee</th>
-              <th className="px-3 py-2">Category</th>
-              <th className="px-3 py-2">Amount</th>
-              <th className="px-3 py-2">Reason</th>
+              <th className="px-3 py-2">{t("Date")}</th>
+              <th className="px-3 py-2">{t("Payee")}</th>
+              <th className="px-3 py-2">{t("Category")}</th>
+              <th className="px-3 py-2">{t("Amount")}</th>
+              <th className="px-3 py-2">{t("Reason")}</th>
             </tr>
           </thead>
           <tbody>
@@ -132,7 +134,7 @@ export default function PettyCash() {
               <tr key={String(r.name)} className="border-t border-zinc-50">
                 <td className="px-3 py-2">{String(r.voucher_date)}</td>
                 <td className="px-3 py-2">{String(r.payee)}</td>
-                <td className="px-3 py-2">{String(r.category)}</td>
+                <td className="px-3 py-2">{t(String(r.category))}</td>
                 <td className="px-3 py-2 tabular-nums">{inr(r.amount)}</td>
                 <td className="px-3 py-2 text-zinc-500">{String(r.reason)}</td>
               </tr>

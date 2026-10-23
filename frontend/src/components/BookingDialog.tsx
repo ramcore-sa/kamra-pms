@@ -55,6 +55,7 @@ function PhoneInput(props: {
   // only nag once they have stopped short - not on every keystroke of a
   // number they are still typing
   const short = local.length > 0 && local.length < min
+  const { t } = useT()
   return (
     <>
       <div
@@ -78,7 +79,7 @@ function PhoneInput(props: {
           onChange={(e) =>
             props.onChange(joinPhone(dial, clampLocal(e.target.value, dial)))
           }
-          placeholder={props.placeholder ?? (dial === "91" ? "91488 69914" : "Mobile number")}
+          placeholder={props.placeholder ?? (dial === "91" ? "91488 69914" : t("Mobile number"))}
         />
         <span className="shrink-0 pr-3.5 text-xs tabular-nums text-zinc-400">
           {local.length}/{max}
@@ -87,8 +88,8 @@ function PhoneInput(props: {
       {short && (
         <p className="mt-1.5 text-xs text-rose-600">
           {min === max
-            ? `+${dial} numbers are ${min} digits.`
-            : `+${dial} numbers are ${min}-${max} digits.`}
+            ? t("+{dial} numbers are {min} digits.", { dial, min })
+            : t("+{dial} numbers are {min}-{max} digits.", { dial, min, max })}
         </p>
       )}
     </>
@@ -96,10 +97,13 @@ function PhoneInput(props: {
 }
 
 function Field(props: { label: string; children: React.ReactNode }) {
+  // Translated here so a plain English label is enough at every call site;
+  // a label a caller already translated is not a key and passes through.
+  const { t } = useT()
   return (
     <label className="block">
       <span className="mb-1.5 block text-sm font-medium text-zinc-600">
-        {props.label}
+        {t(props.label)}
       </span>
       {props.children}
     </label>
@@ -1166,8 +1170,7 @@ export function BookingDialog(props: {
                   >
                     {options?.room_types.map((rt) => (
                       <option key={rt.name} value={rt.name}>
-                        {rt.room_type_name} · {cur()}
-                        {inr(rt.base_price)}/night
+                        {rt.room_type_name} · {t("{amt}/night", { amt: `${cur()}${inr(rt.base_price)}` })}
                       </option>
                     ))}
                   </select>
@@ -1176,9 +1179,9 @@ export function BookingDialog(props: {
                       selectedRt.children_capacity > 0) &&
                     !overCapacity && (
                       <p className="mt-1.5 text-xs text-zinc-400">
-                        Sleeps up to {selectedRt.adults_capacity} adults
+                        {t("Sleeps up to {n} adults", { n: selectedRt.adults_capacity })}
                         {selectedRt.children_capacity > 0 &&
-                          ` · ${selectedRt.children_capacity} children`}
+                          ` · ${t("{n} children", { n: selectedRt.children_capacity })}`}
                       </p>
                     )}
                 </Field>
@@ -1333,20 +1336,20 @@ export function BookingDialog(props: {
 
                 {selectedRt && overCapacity && (
                   <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800">
-                    {selectedRt.room_type_name} sleeps up to{" "}
-                    <strong>{selectedRt.adults_capacity} adults</strong>
+                    {t("{room_type} sleeps up to", { room_type: selectedRt.room_type_name })}{" "}
+                    <strong>{t("{n} adults", { n: selectedRt.adults_capacity })}</strong>
                     {selectedRt.children_capacity > 0 && (
                       <>
                         {" · "}
-                        <strong>{selectedRt.children_capacity} children</strong>
+                        <strong>{t("{n} children", { n: selectedRt.children_capacity })}</strong>
                       </>
                     )}{" "}
-                    per room.{" "}
+                    {t("per room.")}{" "}
                     <button
                       className="font-semibold text-brand-700 hover:underline"
                       onClick={distributeParty}
                     >
-                      Split into {roomsNeeded} rooms
+                      {t("Split into {n} rooms", { n: roomsNeeded })}
                     </button>
                     {withinExtraBeds && (
                       <div className="mt-2 space-y-2 border-t border-amber-200 pt-2">
@@ -1410,8 +1413,7 @@ export function BookingDialog(props: {
                       <option value="">{t("Room only")}</option>
                       {options?.meal_plans.map((mp) => (
                         <option key={mp.name} value={mp.name}>
-                          {mp.label} (+{cur()}
-                          {inr(mp.price_per_adult)}/adult)
+                          {t(mp.label)} ({t("+{amt}/adult", { amt: `${cur()}${inr(mp.price_per_adult)}` })})
                         </option>
                       ))}
                     </select>
@@ -1501,11 +1503,11 @@ export function BookingDialog(props: {
                     className="flex flex-wrap items-end gap-2 rounded-xl border border-zinc-200 bg-zinc-50/50 px-3 py-2.5"
                   >
                     <span className="w-full text-xs font-medium uppercase tracking-wider text-zinc-400">
-                      Room {i + 2}
+                      {t("Room {n}", { n: i + 2 })}
                     </span>
                     <select
                       className={`${inputCls} !w-auto flex-1`}
-                      aria-label={`Room ${i + 2} type`}
+                      aria-label={t("Room {n} type", { n: i + 2 })}
                       value={r.room_type}
                       onChange={(e) =>
                         setMoreRooms((rs) =>
@@ -1524,7 +1526,7 @@ export function BookingDialog(props: {
                     <input
                       type="number"
                       min={1}
-                      aria-label={`Room ${i + 2} adults`}
+                      aria-label={t("Room {n} adults", { n: i + 2 })}
                       className={`${inputCls} !w-16`}
                       value={r.adults}
                       onChange={(e) =>
@@ -1542,7 +1544,7 @@ export function BookingDialog(props: {
                     />
                     <select
                       className={`${inputCls} !w-auto`}
-                      aria-label={`Room ${i + 2} meal plan`}
+                      aria-label={t("Room {n} meal plan", { n: i + 2 })}
                       value={r.meal_plan}
                       onChange={(e) =>
                         setMoreRooms((rs) =>
@@ -1552,16 +1554,16 @@ export function BookingDialog(props: {
                         )
                       }
                     >
-                      <option value="">Room only</option>
+                      <option value="">{t("Room only")}</option>
                       {options?.meal_plans.map((mp) => (
                         <option key={mp.name} value={mp.name}>
-                          {mp.label}
+                          {t(mp.label)}
                         </option>
                       ))}
                     </select>
                     <button
                       className="rounded p-1.5 text-zinc-400 hover:text-rose-500"
-                      aria-label={`Remove room ${i + 2}`}
+                      aria-label={t("Remove room {n}", { n: i + 2 })}
                       onClick={() =>
                         setMoreRooms((rs) => rs.filter((_, j) => j !== i))
                       }
@@ -1646,7 +1648,7 @@ export function BookingDialog(props: {
                         (options?.experiences.length ?? 0) > 0 && (
                           <div>
                             <span className="mb-1.5 block text-sm font-medium text-zinc-600">
-                              Add-ons
+                              {t("Add-ons")}
                             </span>
                             <div className="flex flex-wrap gap-1.5">
                               {options?.experiences.map((x) => {
@@ -1679,9 +1681,7 @@ export function BookingDialog(props: {
 
                       {moreRooms.length > 0 && (
                         <p className="text-xs text-zinc-400">
-                          Multi-room bookings are created as a group — vouchers,
-                          add-ons and booker details can be added per stay
-                          afterwards.
+                          {t("Multi-room bookings are created as a group — vouchers, add-ons and booker details can be added per stay afterwards.")}
                         </p>
                       )}
 
@@ -1694,7 +1694,7 @@ export function BookingDialog(props: {
                               checked={onBehalf}
                               onChange={(e) => setOnBehalf(e.target.checked)}
                             />
-                            Booked on someone&apos;s behalf
+                            {t("Booked on someone's behalf")}
                           </label>
                           {onBehalf && (
                             <div className="space-y-3">
@@ -1706,7 +1706,7 @@ export function BookingDialog(props: {
                                     onChange={(e) =>
                                       set("booked_by_name", e.target.value)
                                     }
-                                    placeholder="Who arranged this stay"
+                                    placeholder={t("Who arranged this stay")}
                                   />
                                 </Field>
                                 <Field label="Booker phone">
@@ -1735,7 +1735,7 @@ export function BookingDialog(props: {
                                       "Company Travel Desk",
                                       "Travel Agent",
                                     ].map((r) => (
-                                      <option key={r}>{r}</option>
+                                      <option key={r} value={r}>{t(r)}</option>
                                     ))}
                                   </select>
                                 </Field>
@@ -1747,9 +1747,9 @@ export function BookingDialog(props: {
                                       set("contact_preference", e.target.value)
                                     }
                                   >
-                                    <option value="Booker">Booker</option>
-                                    <option value="Guest">Guest</option>
-                                    <option value="Both">Both</option>
+                                    <option value="Booker">{t("Booker")}</option>
+                                    <option value="Guest">{t("Guest")}</option>
+                                    <option value="Both">{t("Both")}</option>
                                   </select>
                                 </Field>
                               </div>
@@ -1760,7 +1760,7 @@ export function BookingDialog(props: {
                             <textarea
                               className={inputCls}
                               rows={2}
-                              placeholder="e.g. prayer mat, high floor, allergy notes"
+                              placeholder={t("e.g. prayer mat, high floor, allergy notes")}
                               value={extra.special_requests}
                               onChange={(e) =>
                                 setX("special_requests", e.target.value)
@@ -1785,7 +1785,7 @@ export function BookingDialog(props: {
                                   checked={extra[k]}
                                   onChange={(e) => setX(k, e.target.checked)}
                                 />
-                                {lbl}
+                                {t(lbl)}
                               </label>
                             ))}
                           </div>
@@ -1800,11 +1800,10 @@ export function BookingDialog(props: {
                                   }
                                 >
                                   <option value="">—</option>
-                                  <option>Air</option>
-                                  <option>Road</option>
-                                  <option>Rail</option>
-                                  <option>Sea</option>
-                                  <option>Own vehicle</option>
+                                  {/* value stays English: it is the stored option */}
+                                  {["Air", "Road", "Rail", "Sea", "Own vehicle"].map((o) => (
+                                    <option key={o} value={o}>{t(o)}</option>
+                                  ))}
                                 </select>
                               </Field>
                               <Field label="Flight / train no.">
@@ -1849,13 +1848,9 @@ export function BookingDialog(props: {
                                 }
                               >
                                 <option value="">—</option>
-                                <option>Leisure</option>
-                                <option>Business</option>
-                                <option>Event / Wedding</option>
-                                <option>Medical</option>
-                                <option>Pilgrimage</option>
-                                <option>Crew</option>
-                                <option>Other</option>
+                                {["Leisure", "Business", "Event / Wedding", "Medical", "Pilgrimage", "Crew", "Other"].map((o) => (
+                                  <option key={o} value={o}>{t(o)}</option>
+                                ))}
                               </select>
                             </Field>
                             <Field label="Guest category">
@@ -1866,11 +1861,10 @@ export function BookingDialog(props: {
                                   setX("guest_category", e.target.value)
                                 }
                               >
-                                <option value="">Standard</option>
-                                <option>VIP</option>
-                                <option>Corporate</option>
-                                <option>Complimentary</option>
-                                <option>Crew</option>
+                                <option value="">{t("Standard")}</option>
+                                {["VIP", "Corporate", "Complimentary", "Crew"].map((o) => (
+                                  <option key={o} value={o}>{t(o)}</option>
+                                ))}
                               </select>
                             </Field>
                           </div>
@@ -1905,7 +1899,9 @@ export function BookingDialog(props: {
                         {roomTypeName} ·{" "}
                         {quote.day_use
                           ? t("Day use {from}–{to}", { from: slot.from, to: slot.to })
-                          : `${quote.nights} night${quote.nights === 1 ? "" : "s"}`}
+                          : quote.nights === 1
+                            ? t("1 night")
+                            : t("{n} nights", { n: quote.nights })}
                       </span>
                       <span className="shrink-0 tabular-nums">
                         {cur()}
@@ -1946,7 +1942,7 @@ export function BookingDialog(props: {
                           className="flex justify-between gap-3 text-zinc-600"
                         >
                           <span className="min-w-0 truncate">
-                            Room {i + 2} ·{" "}
+                            {t("Room {n}", { n: i + 2 })} ·{" "}
                             {options?.room_types.find(
                               (rt) => rt.name === moreRooms[i]?.room_type,
                             )?.room_type_name ?? ""}
@@ -1988,12 +1984,20 @@ export function BookingDialog(props: {
                     {options?.property && (
                       <p className="pt-1 text-xs leading-relaxed text-zinc-500">
                         {(options.property.cancellation_fee || "None") === "None"
-                          ? "Free cancellation."
-                          : `Free cancellation until ${cancelCutoff}; after that the ${String(options.property.cancellation_fee).toLowerCase()} is charged.`}
+                          ? t("Free cancellation.")
+                          : t("Free cancellation until {date}; after that the {fee} is charged.", {
+                              date: cancelCutoff,
+                              fee: t(String(options.property.cancellation_fee)).toLowerCase(),
+                            })}
                         {(options.property.no_show_charge || "None") !== "None" &&
-                          ` No-show: ${String(options.property.no_show_charge).toLowerCase()} charged.`}
+                          t(" No-show: {charge} charged.", {
+                            charge: t(String(options.property.no_show_charge)).toLowerCase(),
+                          })}
                         {(options.property.deposit_pct ?? 0) > 0 &&
-                          ` Deposit expected now: ${cur()}${inr((grandTotal * options.property.deposit_pct) / 100)} (${options.property.deposit_pct}%).`}
+                          t(" Deposit expected now: {amt} ({pct}%).", {
+                            amt: `${cur()}${inr((grandTotal * options.property.deposit_pct) / 100)}`,
+                            pct: options.property.deposit_pct,
+                          })}
                       </p>
                     )}
                   </div>

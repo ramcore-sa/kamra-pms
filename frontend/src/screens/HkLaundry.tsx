@@ -4,6 +4,7 @@ import { call, getCurrentProperty } from "../lib/api"
 import { Badge } from "../components/ui/badge"
 import { cn } from "../lib/utils"
 import { cur } from "../lib/money"
+import { useT } from "../lib/i18n"
 import {
   ExpressToggle,
   inr,
@@ -20,6 +21,7 @@ import {
  * module (see ./laundry/shared). */
 
 export default function HkLaundry({ rooms }: { rooms: Room[] }) {
+  const { t } = useT()
   const property = getCurrentProperty()
   const { board, rates, error, busy, act } = useLaundryBoard(property)
   // sheets
@@ -80,11 +82,11 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium">{o.guest_name || o.name}</p>
           <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
-            <Badge tone={STATUS_TONE[o.status] || "zinc"}>{o.status}</Badge>
-            {!!o.express && <Badge tone="amber"><Zap className="mr-0.5 size-3" />express</Badge>}
-            {o.pieces > 0 && <Badge tone="zinc">{o.pieces} pc</Badge>}
+            <Badge tone={STATUS_TONE[o.status] || "zinc"}>{t(o.status)}</Badge>
+            {!!o.express && <Badge tone="amber"><Zap className="mr-0.5 size-3" />{t("express")}</Badge>}
+            {o.pieces > 0 && <Badge tone="zinc">{t("{n} pc", { n: o.pieces })}</Badge>}
             {o.pending > 0 && o.status !== "Requested" && (
-              <Badge tone="rose">{o.pending} pending</Badge>
+              <Badge tone="rose">{t("{n} pending", { n: o.pending })}</Badge>
             )}
           </div>
         </div>
@@ -93,7 +95,7 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
       {o.notes && <p className="mt-2 text-sm text-zinc-500">{o.notes}</p>}
       {o.shortage_note && (
         <p className="mt-2 rounded-lg bg-rose-50 px-2.5 py-1.5 text-sm text-rose-700">
-          Shortage: {o.shortage_note}
+          {t("Shortage")}: {o.shortage_note}
         </p>
       )}
       <div className="mt-3 flex gap-2">
@@ -102,7 +104,7 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
             className="flex-1 rounded-xl bg-brand-600 py-2.5 text-sm font-semibold text-white"
             disabled={busy}
             onClick={() => setCounting({ order: o.name, room: o.room, express: !!o.express, qty: {} })}>
-            Collect & count
+            {t("Collect & count")}
           </button>
         )}
         {o.status === "Collected" && (
@@ -110,7 +112,7 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
             className="flex-1 rounded-xl bg-sky-600 py-2.5 text-sm font-semibold text-white"
             disabled={busy}
             onClick={() => act(() => call("kamra.laundry.laundry_status", { order: o.name, status: "In Process" }))}>
-            Send to laundry
+            {t("Send to laundry")}
           </button>
         )}
         {o.status === "In Process" && (
@@ -118,7 +120,7 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
             className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white"
             disabled={busy}
             onClick={() => act(() => call("kamra.laundry.laundry_status", { order: o.name, status: "Ready" }))}>
-            Mark ready
+            {t("Mark ready")}
           </button>
         )}
         {["Collected", "In Process", "Ready"].includes(o.status) && (
@@ -127,7 +129,7 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
               o.status === "Ready" ? "border-brand-600 text-brand-700" : "border-zinc-300 text-zinc-600")}
             disabled={busy}
             onClick={() => setReturning({ order: o, back: {}, note: "" })}>
-            Return & deliver
+            {t("Return & deliver")}
           </button>
         )}
       </div>
@@ -146,37 +148,37 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
         <button
           className="rounded-xl border border-zinc-300 bg-white py-3 text-sm font-semibold text-zinc-700"
           onClick={() => setPickup({ room: "", notes: "", express: false })}>
-          Log pickup request
+          {t("Log pickup request")}
         </button>
         <button
           className="rounded-xl bg-brand-600 py-3 text-sm font-semibold text-white"
           onClick={() => setCounting({ order: null, room: "", express: false, qty: {} })}>
-          <Shirt className="mr-1 inline size-4" />Collect now
+          <Shirt className="mr-1 inline size-4" />{t("Collect now")}
         </button>
       </div>
 
       {requested.length > 0 && (
         <>
-          <p className="px-1 text-sm font-medium text-zinc-500">Pickup requests</p>
+          <p className="px-1 text-sm font-medium text-zinc-500">{t("Pickup requests")}</p>
           <ul className="space-y-3">{requested.map((o) => <OrderCard key={o.name} o={o} />)}</ul>
         </>
       )}
 
       <p className="px-1 text-sm font-medium text-zinc-500">
-        In hand ({inHand.length})
+        {t("In hand ({n})", { n: inHand.length })}
       </p>
       <ul className="space-y-3">
         {inHand.map((o) => <OrderCard key={o.name} o={o} />)}
         {inHand.length === 0 && (
           <li className="rounded-2xl border border-dashed border-zinc-300 p-8 text-center text-zinc-400">
-            No laundry out right now.
+            {t("No laundry out right now.")}
           </li>
         )}
       </ul>
 
       {(board?.recent ?? []).length > 0 && (
         <>
-          <p className="px-1 text-sm font-medium text-zinc-500">Recent</p>
+          <p className="px-1 text-sm font-medium text-zinc-500">{t("Recent")}</p>
           <ul className="space-y-1">
             {(board?.recent ?? []).map((o) => (
               <li key={o.name} className="flex items-center justify-between rounded-xl bg-white px-3 py-2 text-sm">
@@ -185,7 +187,7 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
                   {o.shortage_note && <span className="ml-1 text-rose-500">!</span>}
                 </span>
                 <span className="flex items-center gap-2">
-                  <Badge tone={STATUS_TONE[o.status] || "zinc"}>{o.status}</Badge>
+                  <Badge tone={STATUS_TONE[o.status] || "zinc"}>{t(o.status)}</Badge>
                   {o.total > 0 && <span className="tabular-nums font-medium">{cur()}{inr(o.total)}</span>}
                 </span>
               </li>
@@ -196,17 +198,17 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
 
       {/* pickup request sheet */}
       {pickup && (
-        <Sheet onClose={() => setPickup(null)} title="Laundry pickup request">
+        <Sheet onClose={() => setPickup(null)} title={t("Laundry pickup request")}>
           <select
             className="w-full rounded-xl border border-zinc-300 px-3 py-3 text-base"
             value={pickup.room}
             onChange={(e) => setPickup({ ...pickup, room: e.target.value })}>
-            <option value="">Room…</option>
-            {occupied.map((r) => <option key={r.name} value={r.name}>Room {r.room_number}</option>)}
+            <option value="">{t("Room…")}</option>
+            {occupied.map((r) => <option key={r.name} value={r.name}>{t("Room {n}", { n: r.room_number })}</option>)}
           </select>
           <input
             className="w-full rounded-xl border border-zinc-300 px-3 py-3 text-base"
-            placeholder="Notes (bag on door, after 3pm…)"
+            placeholder={t("Notes (bag on door, after 3pm…)")}
             value={pickup.notes}
             onChange={(e) => setPickup({ ...pickup, notes: e.target.value })} />
           <ExpressToggle value={pickup.express} onChange={(v) => setPickup({ ...pickup, express: v })} />
@@ -220,21 +222,21 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
               })
               setPickup(null)
             })}>
-            Add to pickup queue
+            {t("Add to pickup queue")}
           </button>
         </Sheet>
       )}
 
       {/* count sheet */}
       {counting && (
-        <Sheet onClose={() => setCounting(null)} title="Count the bag">
+        <Sheet onClose={() => setCounting(null)} title={t("Count the bag")}>
           {!counting.order && (
             <select
               className="w-full rounded-xl border border-zinc-300 px-3 py-3 text-base"
               value={counting.room}
               onChange={(e) => setCounting({ ...counting, room: e.target.value })}>
-              <option value="">Room…</option>
-              {occupied.map((r) => <option key={r.name} value={r.name}>Room {r.room_number}</option>)}
+              <option value="">{t("Room…")}</option>
+              {occupied.map((r) => <option key={r.name} value={r.name}>{t("Room {n}", { n: r.room_number })}</option>)}
             </select>
           )}
           <ExpressToggle value={counting.express} onChange={(v) => setCounting({ ...counting, express: v })} />
@@ -248,14 +250,14 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
                     q > 0 ? "border-brand-300 bg-brand-50" : "border-zinc-200")}>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{r.item_name}</p>
-                    <p className="text-xs text-zinc-400">{r.service_type} · {cur()}{inr(price)}</p>
+                    <p className="text-xs text-zinc-400">{t(r.service_type)} · {cur()}{inr(price)}</p>
                   </div>
-                  <button className="rounded-lg border border-zinc-300 p-1.5" aria-label="less"
+                  <button className="rounded-lg border border-zinc-300 p-1.5" aria-label={t("less")}
                     onClick={() => setCounting({ ...counting, qty: { ...counting.qty, [r.name]: Math.max(0, q - 1) } })}>
                     <Minus className="size-4" />
                   </button>
                   <span className="w-6 text-center text-base font-bold tabular-nums">{q}</span>
-                  <button className="rounded-lg border border-zinc-300 p-1.5" aria-label="more"
+                  <button className="rounded-lg border border-zinc-300 p-1.5" aria-label={t("more")}
                     onClick={() => setCounting({ ...counting, qty: { ...counting.qty, [r.name]: q + 1 } })}>
                     <Plus className="size-4" />
                   </button>
@@ -264,7 +266,7 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
             })}
             {rates.length === 0 && (
               <p className="py-4 text-center text-sm text-zinc-400">
-                No rate card yet — add laundry rates in Settings.
+                {t("No rate card yet — add laundry rates in Settings.")}
               </p>
             )}
           </div>
@@ -272,21 +274,25 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
             className="w-full rounded-xl bg-brand-600 py-3 text-base font-semibold text-white disabled:opacity-50"
             disabled={busy || countPieces === 0 || (!counting.order && !counting.room)}
             onClick={submitCollect}>
-            Collect {countPieces} piece{countPieces === 1 ? "" : "s"} · {cur()}{inr(countTotal)}
+            {t("Collect {n} piece{s} · {total}", {
+              n: countPieces,
+              s: countPieces === 1 ? "" : "s",
+              total: `${cur()}${inr(countTotal)}`,
+            })}
           </button>
         </Sheet>
       )}
 
       {/* return & deliver sheet */}
       {returning && (
-        <Sheet onClose={() => setReturning(null)} title={`Return to room ${returning.order.room_no}`}>
+        <Sheet onClose={() => setReturning(null)} title={t("Return to room {room}", { room: returning.order.room_no })}>
           <button
             className="w-full rounded-xl border border-emerald-300 bg-emerald-50 py-2.5 text-sm font-semibold text-emerald-700"
             onClick={() => setReturning({
               ...returning,
               back: Object.fromEntries(returning.order.items.map((it) => [it.name, it.qty])),
             })}>
-            Everything came back
+            {t("Everything came back")}
           </button>
           <div className="max-h-72 space-y-1 overflow-y-auto">
             {returning.order.items.map((it) => {
@@ -295,9 +301,9 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
                 <div key={it.name} className="flex items-center gap-2 rounded-xl border border-zinc-200 px-3 py-2">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{it.item_name}</p>
-                    <p className="text-xs text-zinc-400">{it.service_type} · collected {it.qty}</p>
+                    <p className="text-xs text-zinc-400">{t(it.service_type)} · {t("collected {n}", { n: it.qty })}</p>
                   </div>
-                  <button className="rounded-lg border border-zinc-300 p-1.5" aria-label="less"
+                  <button className="rounded-lg border border-zinc-300 p-1.5" aria-label={t("less")}
                     onClick={() => setReturning({ ...returning, back: { ...returning.back, [it.name]: Math.max(0, back - 1) } })}>
                     <Minus className="size-4" />
                   </button>
@@ -305,7 +311,7 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
                     back < it.qty ? "text-rose-600" : "text-emerald-700")}>
                     {back}/{it.qty}
                   </span>
-                  <button className="rounded-lg border border-zinc-300 p-1.5" aria-label="more"
+                  <button className="rounded-lg border border-zinc-300 p-1.5" aria-label={t("more")}
                     onClick={() => setReturning({ ...returning, back: { ...returning.back, [it.name]: Math.min(it.qty, back + 1) } })}>
                     <Plus className="size-4" />
                   </button>
@@ -316,7 +322,7 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
           {returnPending > 0 && (
             <input
               className="w-full rounded-xl border border-rose-300 bg-rose-50 px-3 py-3 text-base"
-              placeholder={`${returnPending} piece(s) short — why? (required)`}
+              placeholder={t("{n} piece(s) short — why? (required)", { n: returnPending })}
               value={returning.note}
               onChange={(e) => setReturning({ ...returning, note: e.target.value })} />
           )}
@@ -325,8 +331,10 @@ export default function HkLaundry({ rooms }: { rooms: Room[] }) {
             disabled={busy || (returnPending > 0 && !returning.note.trim())}
             onClick={submitDeliver}>
             <ChevronRight className="mr-1 inline size-4" />
-            Deliver & bill {cur()}{inr(returning.order.total)}
-            {returnPending > 0 ? ` (${returnPending} short)` : ""}
+            {t("Deliver & bill {total}{short}", {
+              total: `${cur()}${inr(returning.order.total)}`,
+              short: returnPending > 0 ? t(" ({n} short)", { n: returnPending }) : "",
+            })}
           </button>
         </Sheet>
       )}

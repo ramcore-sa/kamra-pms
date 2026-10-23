@@ -13,6 +13,7 @@ import { subscribeRealtime } from "../lib/realtime"
 import { serverError } from "../lib/resource"
 import { cur, moneyLocale } from "../lib/money"
 import { cn } from "../lib/utils"
+import { t, useT } from "../lib/i18n"
 
 const inr = (n: unknown) =>
   Number(n ?? 0).toLocaleString(moneyLocale(), { maximumFractionDigits: 0 })
@@ -57,8 +58,8 @@ function today() {
 function ago(ts?: string) {
   if (!ts) return ""
   const mins = Math.max(0, Math.round((Date.now() - new Date(ts.replace(" ", "T")).getTime()) / 60000))
-  if (mins < 60) return `${mins}m`
-  return `${Math.floor(mins / 60)}h ${mins % 60}m`
+  if (mins < 60) return t("{m}m", { m: mins })
+  return t("{h}h {m}m", { h: Math.floor(mins / 60), m: mins % 60 })
 }
 
 function Kpi({ icon: Icon, label, value, sub, tone }: {
@@ -82,18 +83,19 @@ function Kpi({ icon: Icon, label, value, sub, tone }: {
 }
 
 function BucketBars({ title, rows }: { title: string; rows: Bucket[] }) {
+  const { t } = useT()
   const max = Math.max(1, ...rows.map((r) => r.total))
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-3">
       <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-zinc-500">{title}</h3>
-      {rows.length === 0 && <p className="py-2 text-xs text-zinc-400">Nothing settled yet.</p>}
+      {rows.length === 0 && <p className="py-2 text-xs text-zinc-400">{t("Nothing settled yet.")}</p>}
       <ul className="space-y-2">
         {rows.map((r) => (
           <li key={r.label}>
             <div className="flex items-baseline justify-between text-sm">
-              <span className="font-medium text-zinc-700">{r.label}</span>
+              <span className="font-medium text-zinc-700">{t(r.label)}</span>
               <span className="tabular-nums text-zinc-600">
-                {cur()}{inr(r.total)} <span className="text-xs text-zinc-400">· {r.bills} bill{r.bills === 1 ? "" : "s"}</span>
+                {cur()}{inr(r.total)} <span className="text-xs text-zinc-400">· {t(r.bills === 1 ? "{n} bill" : "{n} bills", { n: r.bills })}</span>
               </span>
             </div>
             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-100">
@@ -107,6 +109,7 @@ function BucketBars({ title, rows }: { title: string; rows: Bucket[] }) {
 }
 
 export default function PosDashboard() {
+  const { t } = useT()
   const [outlets, setOutlets] = useState<Outlet[]>([])
   const [outlet, setOutlet] = useState("")
   const [date, setDate] = useState(today())
@@ -142,7 +145,7 @@ export default function PosDashboard() {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="flex items-center gap-2 text-xl font-bold text-zinc-800">
-          <TrendingUp className="size-5 text-brand-600" />F&amp;B Dashboard
+          <TrendingUp className="size-5 text-brand-600" />{t("F&B Dashboard")}
           <select className={inputCls + " font-normal"} value={outlet} onChange={(e) => setOutlet(e.target.value)}>
             {outlets.map((o) => <option key={o.name} value={o.name}>{o.outlet_name}</option>)}
           </select>
@@ -152,7 +155,7 @@ export default function PosDashboard() {
             onChange={(e) => setDate(e.target.value || today())} />
           <Link to="/pos"
             className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-2.5 py-1.5 text-sm font-medium text-zinc-600 hover:bg-zinc-50">
-            <UtensilsCrossed className="size-4" />Open POS
+            <UtensilsCrossed className="size-4" />{t("Open POS")}
           </Link>
         </div>
       </div>
@@ -163,32 +166,34 @@ export default function PosDashboard() {
         <>
           {/* KPIs */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            <Kpi icon={Wallet} label="Gross sales" value={`${cur()}${inr(data.gross_sales)}`}
-              sub={`${data.bills} bill${data.bills === 1 ? "" : "s"} settled`} />
-            <Kpi icon={Receipt} label="Avg bill" value={`${cur()}${inr(data.avg_bill)}`} />
-            <Kpi icon={Users} label="Covers" value={inr(data.covers)} />
-            <Kpi icon={Clock} label="Open bills" value={String(data.open_bills.length)}
-              sub={`${cur()}${inr(data.open_bills.reduce((s, b) => s + Number(b.order_total || 0), 0))} unsettled`} />
-            <Kpi icon={Gift} label="Complimentary" value={String(data.nc.count)} tone="amber"
-              sub={`${cur()}${inr(data.nc.value)} given away`} />
-            <Kpi icon={ChefHat} label="Fire → ready"
-              value={data.avg_fire_to_ready_mins === null ? "—" : `${data.avg_fire_to_ready_mins}m`}
-              sub="kitchen average" />
+            <Kpi icon={Wallet} label={t("Gross sales")} value={`${cur()}${inr(data.gross_sales)}`}
+              sub={t(data.bills === 1 ? "{n} bill settled" : "{n} bills settled", { n: data.bills })} />
+            <Kpi icon={Receipt} label={t("Avg bill")} value={`${cur()}${inr(data.avg_bill)}`} />
+            <Kpi icon={Users} label={t("Covers")} value={inr(data.covers)} />
+            <Kpi icon={Clock} label={t("Open bills")} value={String(data.open_bills.length)}
+              sub={t("{amount} unsettled", {
+                amount: `${cur()}${inr(data.open_bills.reduce((s, b) => s + Number(b.order_total || 0), 0))}`,
+              })} />
+            <Kpi icon={Gift} label={t("Complimentary")} value={String(data.nc.count)} tone="amber"
+              sub={t("{amount} given away", { amount: `${cur()}${inr(data.nc.value)}` })} />
+            <Kpi icon={ChefHat} label={t("Fire → ready")}
+              value={data.avg_fire_to_ready_mins === null ? "—" : t("{m}m", { m: data.avg_fire_to_ready_mins })}
+              sub={t("kitchen average")} />
           </div>
 
           <div className="grid gap-3 lg:grid-cols-2">
-            <BucketBars title="Sales by order type" rows={data.by_order_type} />
-            <BucketBars title="Sales by tender" rows={data.by_tender} />
+            <BucketBars title={t("Sales by order type")} rows={data.by_order_type} />
+            <BucketBars title={t("Sales by tender")} rows={data.by_tender} />
           </div>
 
           <div className="grid gap-3 lg:grid-cols-2">
             {/* open bills */}
             <div className="rounded-xl border border-zinc-200 bg-white p-3">
               <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-zinc-500">
-                Open bills ({data.open_bills.length})
+                {t("Open bills ({n})", { n: data.open_bills.length })}
               </h3>
               {data.open_bills.length === 0 ? (
-                <p className="py-2 text-xs text-zinc-400">Every bill is settled. Clean floor.</p>
+                <p className="py-2 text-xs text-zinc-400">{t("Every bill is settled. Clean floor.")}</p>
               ) : (
                 <ul className="divide-y divide-zinc-50">
                   {data.open_bills.map((b) => (
@@ -196,7 +201,7 @@ export default function PosDashboard() {
                       <span className="min-w-0">
                         <span className="font-medium text-zinc-700">{b.label}</span>
                         <span className="ml-1.5 text-xs text-zinc-400">
-                          {b.order_type}{b.kot_no ? ` · KOT ${b.kot_no}` : ""} · {b.status}
+                          {b.order_type ? t(b.order_type) : ""}{b.kot_no ? ` · ${t("KOT {n}", { n: b.kot_no })}` : ""} · {t(b.status)}
                         </span>
                       </span>
                       <span className="flex shrink-0 items-center gap-2 tabular-nums">
@@ -215,19 +220,19 @@ export default function PosDashboard() {
 
             {/* top items */}
             <div className="rounded-xl border border-zinc-200 bg-white p-3">
-              <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-zinc-500">Top items</h3>
+              <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-zinc-500">{t("Top items")}</h3>
               {data.top_items.length === 0 ? (
-                <p className="py-2 text-xs text-zinc-400">Nothing sold yet.</p>
+                <p className="py-2 text-xs text-zinc-400">{t("Nothing sold yet.")}</p>
               ) : (
                 <ul className="divide-y divide-zinc-50">
-                  {data.top_items.map((t, i) => (
-                    <li key={t.item_name} className="flex items-center justify-between gap-2 py-1.5 text-sm">
+                  {data.top_items.map((it, i) => (
+                    <li key={it.item_name} className="flex items-center justify-between gap-2 py-1.5 text-sm">
                       <span className="min-w-0 truncate">
                         <span className="mr-1.5 inline-block w-5 text-center text-xs font-bold text-zinc-300">{i + 1}</span>
-                        <span className="font-medium text-zinc-700">{t.item_name}</span>
+                        <span className="font-medium text-zinc-700">{it.item_name}</span>
                       </span>
                       <span className="shrink-0 tabular-nums text-zinc-600">
-                        {Math.round(t.qty)}× <span className="text-xs text-zinc-400">· {cur()}{inr(t.amount)}</span>
+                        {Math.round(it.qty)}× <span className="text-xs text-zinc-400">· {cur()}{inr(it.amount)}</span>
                       </span>
                     </li>
                   ))}
@@ -240,10 +245,10 @@ export default function PosDashboard() {
           <div className="grid gap-3 lg:grid-cols-3">
             <div className="rounded-xl border border-amber-200 bg-white p-3">
               <h3 className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-amber-700">
-                <Gift className="size-3.5" />Complimentary ({data.nc.count} · {cur()}{inr(data.nc.value)})
+                <Gift className="size-3.5" />{t("Complimentary ({n} · {amount})", { n: data.nc.count, amount: `${cur()}${inr(data.nc.value)}` })}
               </h3>
               {data.nc.bills.length === 0 ? (
-                <p className="py-2 text-xs text-zinc-400">No NC bills.</p>
+                <p className="py-2 text-xs text-zinc-400">{t("No NC bills.")}</p>
               ) : (
                 <ul className="space-y-1.5 text-sm">
                   {data.nc.bills.map((b) => (
@@ -251,7 +256,7 @@ export default function PosDashboard() {
                       <span className="min-w-0">
                         <span className="font-medium text-zinc-700">{b.label}</span>
                         <span className="block truncate text-xs text-zinc-400">
-                          auth: {b.authorized_by}{b.note ? ` · ${b.note}` : ""}
+                          {t("auth: {by}", { by: b.authorized_by ?? "" })}{b.note ? ` · ${b.note}` : ""}
                         </span>
                       </span>
                       <span className="shrink-0 tabular-nums text-zinc-600">{cur()}{inr(b.subtotal)}</span>
@@ -263,17 +268,17 @@ export default function PosDashboard() {
 
             <div className="rounded-xl border border-rose-200 bg-white p-3">
               <h3 className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-rose-700">
-                <Ban className="size-3.5" />Voided lines ({data.voids.length})
+                <Ban className="size-3.5" />{t("Voided lines ({n})", { n: data.voids.length })}
               </h3>
               {data.voids.length === 0 ? (
-                <p className="py-2 text-xs text-zinc-400">No voids.</p>
+                <p className="py-2 text-xs text-zinc-400">{t("No voids.")}</p>
               ) : (
                 <ul className="space-y-1.5 text-sm">
                   {data.voids.map((v, i) => (
                     <li key={`${v.order}-${i}`} className="flex items-start justify-between gap-2">
                       <span className="min-w-0">
                         <span className="font-medium text-zinc-700">{Math.round(v.qty)}× {v.item_name}</span>
-                        <span className="block truncate text-xs text-zinc-400">{v.label} · {v.reason || "no reason"}</span>
+                        <span className="block truncate text-xs text-zinc-400">{v.label} · {v.reason || t("no reason")}</span>
                       </span>
                       <span className="shrink-0 tabular-nums text-zinc-600">{cur()}{inr(v.amount)}</span>
                     </li>
@@ -284,17 +289,17 @@ export default function PosDashboard() {
 
             <div className="rounded-xl border border-rose-200 bg-white p-3">
               <h3 className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-rose-700">
-                <Ban className="size-3.5" />Cancelled bills ({data.cancellations.length})
+                <Ban className="size-3.5" />{t("Cancelled bills ({n})", { n: data.cancellations.length })}
               </h3>
               {data.cancellations.length === 0 ? (
-                <p className="py-2 text-xs text-zinc-400">No cancellations.</p>
+                <p className="py-2 text-xs text-zinc-400">{t("No cancellations.")}</p>
               ) : (
                 <ul className="space-y-1.5 text-sm">
                   {data.cancellations.map((c) => (
                     <li key={c.name} className="flex items-start justify-between gap-2">
                       <span className="min-w-0">
                         <span className="font-medium text-zinc-700">{c.label}</span>
-                        <span className="block truncate text-xs text-zinc-400">{c.reason || "no reason recorded"}</span>
+                        <span className="block truncate text-xs text-zinc-400">{c.reason || t("no reason recorded")}</span>
                       </span>
                       <span className="shrink-0 tabular-nums text-zinc-600">{cur()}{inr(c.order_total)}</span>
                     </li>
@@ -308,7 +313,7 @@ export default function PosDashboard() {
 
       {!data && !error && (
         <div className="rounded-xl border border-dashed border-zinc-300 p-10 text-center text-sm text-zinc-400">
-          Loading the day…
+          {t("Loading the day…")}
         </div>
       )}
     </div>

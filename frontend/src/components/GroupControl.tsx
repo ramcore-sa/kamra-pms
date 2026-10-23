@@ -9,6 +9,7 @@ import LinkedRecords from "./LinkedRecords"
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
 import { cur, moneyLocale } from "../lib/money"
+import { useT } from "../lib/i18n"
 
 /** Group Rooms Control - the MICE cockpit for one piece of business:
  *  the room block (with pickup progress), the rooming list, the tied
@@ -76,6 +77,7 @@ export default function GroupControl({
   row: Row
   reload: () => void
 }) {
+  const { t } = useT()
   const name = String(row.name)
   const [d, setD] = useState<Detail | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -143,7 +145,7 @@ export default function GroupControl({
   if (!d)
     return (
       <p className="py-8 text-center text-sm text-zinc-400">
-        {error ?? "Loading group…"}
+        {error ?? t("Loading group…")}
       </p>
     )
 
@@ -158,10 +160,10 @@ export default function GroupControl({
             {g.company && <> · {g.company}</>}
           </div>
         </div>
-        <Badge tone={STATUS_TONE[g.status] ?? "zinc"}>{g.status}</Badge>
+        <Badge tone={STATUS_TONE[g.status] ?? "zinc"}>{t(g.status)}</Badge>
         {g.status === "Open" && (
           <Button disabled={busy} onClick={() => saveBlocks("Confirmed")}>
-            Confirm block
+            {t("Confirm block")}
           </Button>
         )}
         {d.master_folio ? (
@@ -169,7 +171,7 @@ export default function GroupControl({
             to={`/billing/${encodeURIComponent(d.master_folio)}`}
             className="text-sm font-medium text-brand-700 hover:underline"
           >
-            Group folio →
+            {t("Group folio →")}
           </Link>
         ) : (
           <Button
@@ -181,7 +183,7 @@ export default function GroupControl({
               )
             }
           >
-            Open group folio
+            {t("Open group folio")}
           </Button>
         )}
       </div>
@@ -198,16 +200,16 @@ export default function GroupControl({
       <div>
         <div className="mb-2 flex items-center justify-between">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-            Room block
+            {t("Room block")}
           </h3>
           <label className="flex items-center gap-2 text-xs text-zinc-500">
-            Cutoff
+            {t("Cutoff")}
             <input
               type="date"
               className="rounded-lg border border-zinc-300 px-2 py-1 text-xs"
               value={cutoff}
               onChange={(e) => setCutoff(e.target.value)}
-              title="Unsold blocked rooms release back to sale after this date"
+              title={t("Unsold blocked rooms release back to sale after this date")}
             />
           </label>
         </div>
@@ -230,7 +232,7 @@ export default function GroupControl({
                     )
                   }
                 >
-                  <option value="">Room type…</option>
+                  <option value="">{t("Room type…")}</option>
                   {roomTypes.map((rt) => (
                     <option key={rt} value={rt}>
                       {short(rt)}
@@ -240,7 +242,7 @@ export default function GroupControl({
                 <input
                   type="number"
                   className="w-20 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm"
-                  placeholder="Rooms"
+                  placeholder={t("Rooms")}
                   value={b.rooms_blocked}
                   onChange={(e) =>
                     setBlocks((bs) =>
@@ -253,7 +255,7 @@ export default function GroupControl({
                 <input
                   type="number"
                   className="w-28 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm"
-                  placeholder={`${cur()}/night`}
+                  placeholder={t("{cur}/night", { cur: cur() })}
                   value={b.block_rate}
                   onChange={(e) =>
                     setBlocks((bs) =>
@@ -272,13 +274,12 @@ export default function GroupControl({
                       />
                     </div>
                     <span className="whitespace-nowrap text-xs text-zinc-500">
-                      {p.picked_up}/{p.rooms_blocked} picked · {p.remaining}{" "}
-                      left
+                      {t("{picked}/{blocked} picked · {left} left", { picked: p.picked_up, blocked: p.rooms_blocked, left: p.remaining })}
                     </span>
                   </div>
                 )}
                 <button
-                  aria-label="Remove block row"
+                  aria-label={t("Remove block row")}
                   onClick={() =>
                     setBlocks((bs) => bs.filter((_, j) => j !== i))
                   }
@@ -300,10 +301,10 @@ export default function GroupControl({
               ])
             }
           >
-            <Plus className="size-4" /> Add room type
+            <Plus className="size-4" /> {t("Add room type")}
           </Button>
           <Button variant="outline" disabled={busy} onClick={() => saveBlocks()}>
-            Save block
+            {t("Save block")}
           </Button>
         </div>
       </div>
@@ -312,7 +313,7 @@ export default function GroupControl({
       {g.status === "Confirmed" && d.pickup.some((p) => p.remaining > 0) && (
         <div>
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
-            Pick up a room
+            {t("Pick up a room")}
           </h3>
           <div className="flex flex-wrap items-center gap-2">
             <select
@@ -324,19 +325,19 @@ export default function GroupControl({
                 .filter((p) => p.remaining > 0)
                 .map((p) => (
                   <option key={p.room_type} value={p.room_type}>
-                    {short(p.room_type)} ({p.remaining} left)
+                    {t("{room_type} ({n} left)", { room_type: short(p.room_type), n: p.remaining })}
                   </option>
                 ))}
             </select>
             <input
               className="min-w-40 flex-1 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm"
-              placeholder="Guest name"
+              placeholder={t("Guest name")}
               value={pick.guest_name}
               onChange={(e) => setPick({ ...pick, guest_name: e.target.value })}
             />
             <input
               className="w-36 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm"
-              placeholder="Phone"
+              placeholder={t("Phone")}
               value={pick.phone}
               onChange={(e) => setPick({ ...pick, phone: e.target.value })}
             />
@@ -354,7 +355,7 @@ export default function GroupControl({
                 })
               }
             >
-              Pick up
+              {t("Pick up")}
             </Button>
           </div>
         </div>
@@ -363,15 +364,14 @@ export default function GroupControl({
       {/* event */}
       {d.event && (
         <div className="rounded-lg bg-zinc-50 px-4 py-2.5 text-sm">
-          <span className="font-medium">{d.event.event_type}</span>
+          <span className="font-medium">{t(d.event.event_type)}</span>
           <span className="text-zinc-500">
             {" "}
-            at {short(d.event.venue)} · {d.event.event_date} ·{" "}
-            {d.event.attendees} pax
+            {t("at {venue} · {date} · {n} pax", { venue: short(d.event.venue), date: d.event.event_date, n: d.event.attendees })}
             {d.event.quoted_amount ? ` · ${inr(d.event.quoted_amount)}` : ""} ·{" "}
           </span>
           <Badge tone={d.event.status === "Confirmed" ? "green" : "amber"}>
-            {d.event.status}
+            {t(d.event.status)}
           </Badge>
         </div>
       )}
@@ -379,11 +379,11 @@ export default function GroupControl({
       {/* rooming list */}
       <div>
         <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
-          Rooming list ({d.rooming_list.length})
+          {t("Rooming list ({n})", { n: d.rooming_list.length })}
         </h3>
         {d.rooming_list.length === 0 ? (
           <p className="text-sm text-zinc-400">
-            No guests named into the block yet.
+            {t("No guests named into the block yet.")}
           </p>
         ) : (
           <table className="w-full text-sm">
@@ -393,7 +393,7 @@ export default function GroupControl({
                   <td className="py-1.5 pr-3 font-medium">{r.guest_name}</td>
                   <td className="py-1.5 pr-3 text-zinc-500">
                     {short(r.room_type)}
-                    {r.room ? ` · Room ${short(r.room)}` : ""}
+                    {r.room ? ` · ${t("Room {n}", { n: short(r.room) })}` : ""}
                   </td>
                   <td className="py-1.5 pr-3">
                     <Badge
@@ -405,7 +405,7 @@ export default function GroupControl({
                             : "zinc"
                       }
                     >
-                      {r.status}
+                      {t(r.status)}
                     </Badge>
                   </td>
                   <td className="py-1.5 text-right text-xs text-zinc-400">

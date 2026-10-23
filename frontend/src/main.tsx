@@ -5,6 +5,7 @@ import "./index.css"
 import App from "./App"
 import { initTheme } from "./lib/theme"
 import { initLang } from "./lib/dir"
+import { initTranslations } from "./lib/i18n"
 import { asset } from "./lib/asset"
 import { AuthProvider } from "./lib/auth"
 import { CashierAuthProvider } from "./lib/cashierAuth"
@@ -12,6 +13,7 @@ import { ROUTER_BASENAME } from "./lib/routing"
 
 initTheme()
 initLang()
+initTranslations()
 
 // Favicons, base-aware (see index.html note).
 function setIcon(rel: string, href: string, type?: string) {

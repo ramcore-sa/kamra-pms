@@ -7,6 +7,9 @@
  */
 
 import { cur, moneyLocale } from "./money"
+// Tickets are built when printed, so t() here reads the language in force at
+// that moment - the till's language, which is the one its printer serves.
+import { t } from "./i18n"
 
 const CSS = `
   @page { size: 80mm auto; margin: 0 }
@@ -47,7 +50,8 @@ export function printThermal(title: string, body: string): boolean {
   if (!w) { iframe.remove(); return false }
   w.document.open()
   w.document.write(
-    `<!doctype html><html><head><title>${esc(title)}</title>` +
+    // Follow the UI direction so an Arabic ticket reads right to left.
+    `<!doctype html><html dir="${document.documentElement.dir || "ltr"}"><head><title>${esc(title)}</title>` +
     `<style>${CSS}</style></head><body>${body}</body></html>`)
   w.document.close()
   const cleanup = () => { try { iframe.remove() } catch { /* already gone */ } }
@@ -85,19 +89,19 @@ export function kotHtml(o: {
       : "")).join("")
   return `
     <div class="c b lg">${esc(o.outlet)}</div>
-    <div class="c xl b">KOT #${o.kot_no ?? "—"}${o.reprint ? " (REPRINT)" : ""}</div>
-    ${o.nc ? `<div class="c b lg">*** NC - NO CHARGE ***</div>` +
-      (o.nc_by ? `<div class="c sm">auth: ${esc(o.nc_by)}</div>` : "") : ""}
+    <div class="c xl b">KOT #${o.kot_no ?? "—"}${o.reprint ? esc(t(" (REPRINT)")) : ""}</div>
+    ${o.nc ? `<div class="c b lg">${esc(t("*** NC - NO CHARGE ***"))}</div>` +
+      (o.nc_by ? `<div class="c sm">${esc(t("auth: {name}", { name: o.nc_by }))}</div>` : "") : ""}
     <div class="rule"></div>
-    <div class="row"><span class="b lg">${esc(o.label)}</span><span class="sm">${esc(o.order_type || "")}</span></div>
+    <div class="row"><span class="b lg">${esc(o.label)}</span><span class="sm">${esc(o.order_type ? t(o.order_type) : "")}</span></div>
     <div class="row sm"><span>${esc(o.order)}</span><span>${when}</span></div>
-    ${o.customer ? `<div class="sm">For: ${esc(o.customer)}</div>` : ""}
+    ${o.customer ? `<div class="sm">${esc(t("For: {name}", { name: o.customer }))}</div>` : ""}
     ${o.address ? `<div class="sm">→ ${esc(o.address)}</div>` : ""}
     <div class="rule"></div>
     <table>${rows}</table>
     <div class="rule"></div>
-    <div class="c sm">${o.items.length} item${o.items.length === 1 ? "" : "s"}</div>
-    <div class="cut">- cut -</div>`
+    <div class="c sm">${esc(o.items.length === 1 ? t("1 item") : t("{n} items", { n: o.items.length }))}</div>
+    <div class="cut">${esc(t("- cut -"))}</div>`
 }
 
 export function laundryDocketHtml(o: {
@@ -117,23 +121,23 @@ export function laundryDocketHtml(o: {
   const rows = o.items.map((it) =>
     `<tr><td class="num b" style="width:26px">${Math.round(it.qty)}×</td>` +
     `<td class="b">${esc(it.item_name)}` +
-    `<div class="sm" style="font-weight:400">${esc(it.service_type)}</div>` +
+    `<div class="sm" style="font-weight:400">${esc(t(it.service_type))}</div>` +
     `</td></tr>`).join("")
   return `
-    <div class="c b lg">${esc(o.property_name || "Laundry")}</div>
-    <div class="c xl b">LAUNDRY DOCKET</div>
+    <div class="c b lg">${esc(o.property_name || t("Laundry"))}</div>
+    <div class="c xl b">${esc(t("LAUNDRY DOCKET"))}</div>
     <div class="rule"></div>
     <div class="row"><span class="b lg">${esc(o.room_no)}</span>` +
-    `<span class="sm">${esc(o.order_type || "Guest")}</span></div>
+    `<span class="sm">${esc(t(o.order_type || "Guest"))}</span></div>
     <div class="row sm"><span>${esc(o.order)}</span><span>${when}</span></div>
     ${o.guest_name ? `<div class="sm">${esc(o.guest_name)}</div>` : ""}
-    ${o.express ? `<div class="c b">EXPRESS - SAME DAY</div>` : ""}
-    ${o.ready_by ? `<div class="sm">Ready by: ${esc(o.ready_by)}</div>` : ""}
+    ${o.express ? `<div class="c b">${esc(t("EXPRESS - SAME DAY"))}</div>` : ""}
+    ${o.ready_by ? `<div class="sm">${esc(t("Ready by: {time}", { time: o.ready_by }))}</div>` : ""}
     <div class="rule"></div>
     <table>${rows}</table>
     <div class="rule"></div>
-    <div class="row b lg"><span>Total</span><span class="num">${cur()}${inr(o.total)}</span></div>
-    <div class="c sm">Counted with the guest. Billed to the room.</div>`
+    <div class="row b lg"><span>${esc(t("Total"))}</span><span class="num">${cur()}${inr(o.total)}</span></div>
+    <div class="c sm">${esc(t("Counted with the guest. Billed to the room."))}</div>`
 }
 
 export interface BillData {
@@ -172,15 +176,15 @@ export function billHtml(b: BillData) {
   const when = new Date().toLocaleString(moneyLocale(), {
     day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
   })
-  const label = b.table_no ? `Table ${b.table_no}`
-    : b.room_no ? `Room ${b.room_no}` : (b.order_type || "Counter")
+  const label = b.table_no ? t("Table {n}", { n: b.table_no })
+    : b.room_no ? t("Room {n}", { n: b.room_no }) : t(b.order_type || "Counter")
   const rows = b.items.map((it) =>
     `<tr><td>${esc(it.item_name)}</td>` +
     `<td class="num" style="width:28px">${Math.round(it.qty)}</td>` +
     `<td class="num" style="width:52px">${inr(it.rate)}</td>` +
     `<td class="num" style="width:62px">${inr(it.amount)}</td></tr>`).join("")
   const money = (l: string, v: number, cls = "") =>
-    `<div class="row ${cls}"><span>${l}</span><span class="num">${cur()}${inr(v)}</span></div>`
+    `<div class="row ${cls}"><span>${esc(t(l))}</span><span class="num">${cur()}${inr(v)}</span></div>`
   return `
     <div class="c b lg">${esc(b.property_name)}</div>
     <div class="c">${esc(b.outlet_name)}</div>
@@ -188,13 +192,13 @@ export function billHtml(b: BillData) {
       `<div class="c b sm" dir="rtl">${esc(b.statutory.title_ar)}</div>` : ""}
     <div class="rule"></div>
     <div class="row"><span class="b">${esc(label)}</span><span>${when}</span></div>
-    <div class="row sm"><span>Bill: ${esc(b.order)}</span><span>KOT #${b.kot_no ?? "—"}</span></div>
+    <div class="row sm"><span>${esc(t("Bill: {n}", { n: b.order }))}</span><span>KOT #${b.kot_no ?? "—"}</span></div>
     ${b.customer_name || b.customer_phone
       ? `<div class="sm">${esc([b.customer_name, b.customer_phone].filter(Boolean).join(" · "))}</div>` : ""}
     ${b.delivery_address ? `<div class="sm">→ ${esc(b.delivery_address)}</div>` : ""}
     <div class="rule"></div>
     <table>
-      <tr class="sm"><td>Item</td><td class="num">Qty</td><td class="num">Rate</td><td class="num">Amt</td></tr>
+      <tr class="sm"><td>${esc(t("Item"))}</td><td class="num">${esc(t("Qty"))}</td><td class="num">${esc(t("Rate"))}</td><td class="num">${esc(t("Amt"))}</td></tr>
       ${rows}
     </table>
     <div class="rule"></div>
@@ -203,15 +207,15 @@ export function billHtml(b: BillData) {
     ${(b.tax_parts ?? [
       { label: "CGST", rate: b.gst_rate / 2, amount: b.cgst },
       { label: "SGST", rate: b.gst_rate / 2, amount: b.sgst },
-    ]).map((p) => money(`${esc(p.label)} @ ${p.rate}%`, p.amount, "sm")).join("")}
+    ]).map((p) => money(t("{tax} @ {rate}%", { tax: p.label, rate: p.rate }), p.amount, "sm")).join("")}
     <div class="rule"></div>
     ${money("TOTAL", b.grand_total, "b lg")}
-    ${b.nc ? `<div class="c b" style="margin-top:4px">COMPLIMENTARY - NO CHARGE</div>` +
-      `<div class="c sm">auth: ${esc(b.nc_authorized_by || "—")}${b.nc_note ? ` · ${esc(b.nc_note)}` : ""}</div>` : ""}
-    ${b.paid ? `<div class="c b" style="margin-top:4px">PAID · ${esc(b.payment_mode)}</div>` : ""}
+    ${b.nc ? `<div class="c b" style="margin-top:4px">${esc(t("COMPLIMENTARY - NO CHARGE"))}</div>` +
+      `<div class="c sm">${esc(t("auth: {name}", { name: b.nc_authorized_by || "—" }))}${b.nc_note ? ` · ${esc(b.nc_note)}` : ""}</div>` : ""}
+    ${b.paid ? `<div class="c b" style="margin-top:4px">${esc(t("PAID · {mode}", { mode: t(b.payment_mode || "") }))}</div>` : ""}
     <div class="rule"></div>
     ${b.statutory ? `<div class="c"><img src="${b.statutory.qr_image}" alt="QR" style="width:120px;height:120px"/></div>` +
       `<div class="c sm">ICV ${b.statutory.icv}</div>` : ""}
-    <div class="c sm">Thank you. See you again.</div>
-    <div class="cut">- cut -</div>`
+    <div class="c sm">${esc(t("Thank you. See you again."))}</div>
+    <div class="cut">${esc(t("- cut -"))}</div>`
 }
