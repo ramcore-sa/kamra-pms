@@ -2,6 +2,7 @@
 
 import { frappeFetch } from "./api"
 import { htmlToText } from "./utils"
+import { t } from "./i18n"
 
 export type Row = Record<string, unknown> & { name: string }
 
@@ -78,12 +79,12 @@ export function serverError(e: unknown): string {
   if ((e as { network?: boolean }).network) return (e as Error).message
   const status = (e as { status?: number }).status
   if (status === 401 || status === 403)
-    return "You don't have permission for that, or your session ended — sign in again if this persists."
-  if (status === 404) return "That record wasn't found — it may have been removed."
-  if (status === 429) return "Too many requests — give it a few seconds and try again."
+    return t("You don't have permission for that, or your session ended — sign in again if this persists.")
+  if (status === 404) return t("That record wasn't found — it may have been removed.")
+  if (status === 429) return t("Too many requests — give it a few seconds and try again.")
   if (status && status >= 500)
-    return "Something went wrong on the server. Try again in a moment."
-  if (status) return "That didn't go through. Please try again."
+    return t("Something went wrong on the server. Try again in a moment.")
+  if (status) return t("That didn't go through. Please try again.")
   console.warn("[kamra] unexpected error", e)
-  return "Something unexpected went wrong. Try again — if it keeps happening, let your admin know."
+  return t("Something unexpected went wrong. Try again — if it keeps happening, let your admin know.")
 }

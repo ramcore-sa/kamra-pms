@@ -1526,5 +1526,12 @@
   "Flag in-house folios owing more than": "نبّه لفواتير المقيمين التي تتجاوز",
   "Rate variance tolerance": "هامش فرق السعر",
   "Scheduled 03:00 audit when checks block": "تدقيق 03:00 المجدول عند وجود عوائق",
-  "{n} blocker(s)": "{n} عائق"
+  "{n} blocker(s)": "{n} عائق",
+  "Function": "المناسبة",
+  "Course": "مرحلة التقديم",
+  "Lost": "لم تُحجز",
+  "Discard": "إلغاء التعديلات",
+  "On": "مفعَّل",
+  "Out": "المغادرة",
+  "Slot": "الفترة"
 }

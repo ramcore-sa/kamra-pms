@@ -35,7 +35,8 @@ export const fmtDay = (d: unknown) =>
 export interface Col {
   key: string
   label: string
-  kind?: "money" | "num" | "date" | "text"
+  /** "label": a status or code from the server, shown in the reader's language. */
+  kind?: "money" | "num" | "date" | "text" | "label"
   render?: (row: any) => ReactNode
 }
 
@@ -59,6 +60,7 @@ export function DataTable({
     if (v === null || v === undefined || v === "") return "-"
     if (c.kind === "money") return money(v)
     if (c.kind === "date") return <span className="whitespace-nowrap">{fmtDay(v)}</span>
+    if (c.kind === "label") return t(String(v))
     return String(v)
   }
   const right = (c: Col) => (c.kind === "money" || c.kind === "num" ? "text-end tabular-nums" : "")
@@ -176,7 +178,7 @@ function ManagerFlash({ p }: { p: Pack }) {
       <Sub>{t("Collections by mode")}</Sub>
       <DataTable
         cols={[
-          { key: "mode", label: "Mode" },
+          { key: "mode", label: "Mode", kind: "label" },
           { key: "txns", label: "Transactions", kind: "num" },
           { key: "total", label: "Amount", kind: "money" },
         ]}
@@ -252,7 +254,7 @@ function Journal({ p }: { p: Pack }) {
 
 export const SESSION_COLS: Col[] = [
   { key: "cashier_id", label: "Cashier", render: (r) => r.cashier_id || r.user_name || r.user },
-  { key: "status", label: "Status" },
+  { key: "status", label: "Status", kind: "label" },
   { key: "opening_float", label: "Float", kind: "money" },
   { key: "cash", label: "Cash", kind: "money" },
   { key: "card", label: "Card", kind: "money" },
@@ -264,6 +266,7 @@ export const SESSION_COLS: Col[] = [
 ]
 
 function CashierSummary({ p }: { p: Pack }) {
+  const { t } = useT()
   const rows = p.cashier_sessions || []
   return (
     <DataTable
@@ -271,7 +274,7 @@ function CashierSummary({ p }: { p: Pack }) {
       rows={rows}
       empty="No cashier sessions on this business date."
       total={{
-        cashier_id: "Total",
+        cashier_id: t("Total"),
         cash: money(sum(rows, "cash")),
         card: money(sum(rows, "card")),
         upi: money(sum(rows, "upi")),
@@ -284,6 +287,7 @@ function CashierSummary({ p }: { p: Pack }) {
 }
 
 function GuestLedger({ p }: { p: Pack }) {
+  const { t } = useT()
   const rows = p.in_house || []
   return (
     <DataTable
@@ -299,12 +303,13 @@ function GuestLedger({ p }: { p: Pack }) {
       ]}
       rows={rows}
       empty="No guests in house."
-      total={{ room: "Total", balance: money(sum(rows, "balance")) }}
+      total={{ room: t("Total"), balance: money(sum(rows, "balance")) }}
     />
   )
 }
 
 function CityLedger({ p }: { p: Pack }) {
+  const { t } = useT()
   const rows = p.city_ledger?.accounts || []
   return (
     <DataTable
@@ -321,12 +326,13 @@ function CityLedger({ p }: { p: Pack }) {
       ]}
       rows={rows}
       empty="No city ledger accounts."
-      total={{ company: "Total", open_balance: money(sum(rows, "open_balance")) }}
+      total={{ company: t("Total"), open_balance: money(sum(rows, "open_balance")) }}
     />
   )
 }
 
 function DepositLedger({ p }: { p: Pack }) {
+  const { t } = useT()
   const d = p.deposit_ledger || { items: [] }
   return (
     <DataTable
@@ -334,13 +340,13 @@ function DepositLedger({ p }: { p: Pack }) {
         { key: "reservation", label: "Confirmation" },
         { key: "guest_name", label: "Guest" },
         { key: "check_in_date", label: "Arrival", kind: "date" },
-        { key: "status", label: "Status" },
+        { key: "status", label: "Status", kind: "label" },
         { key: "folio", label: "Folio" },
         { key: "balance", label: "Balance", kind: "money" },
       ]}
       rows={d.items || []}
       empty="No deposits held."
-      total={{ reservation: "Total", balance: money(d.total) }}
+      total={{ reservation: t("Total"), balance: money(d.total) }}
     />
   )
 }
@@ -420,8 +426,8 @@ const MOVE_COLS: Col[] = [
   { key: "room_type", label: "Room type" },
   { key: "check_in_date", label: "Arrival", kind: "date" },
   { key: "check_out_date", label: "Departure", kind: "date" },
-  { key: "status", label: "Status" },
-  { key: "source", label: "Source" },
+  { key: "status", label: "Status", kind: "label" },
+  { key: "source", label: "Source", kind: "label" },
 ]
 
 function NoShows({ p }: { p: Pack }) {
@@ -435,8 +441,8 @@ function NoShows({ p }: { p: Pack }) {
           { key: "guest_name", label: "Guest" },
           { key: "room_type", label: "Room type" },
           { key: "check_in_date", label: "Arrival", kind: "date" },
-          { key: "source", label: "Source" },
-          { key: "outcome", label: "Policy outcome" },
+          { key: "source", label: "Source", kind: "label" },
+          { key: "outcome", label: "Policy outcome", kind: "label" },
           { key: "fee_amount", label: "Fee", kind: "money" },
         ]}
         rows={p.no_shows || []}

@@ -5,6 +5,7 @@ import { Button } from "./ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { cn } from "../lib/utils"
 import { cur, moneyLocale } from "../lib/money"
+import { useT } from "../lib/i18n"
 
 const inr = (n: number) =>
   n.toLocaleString(moneyLocale(), { maximumFractionDigits: 0 })
@@ -43,6 +44,7 @@ export function CalendarView(props: {
   onPick?: (roomType: string, date: string) => void
   refreshKey: number
 }) {
+  const { t } = useT()
   const [data, setData] = useState<CalendarData | null>(null)
   const [start, setStart] = useState(() => iso(new Date()))
   const [loading, setLoading] = useState(false)
@@ -55,7 +57,7 @@ export function CalendarView(props: {
   }, [props.refreshKey, start])
 
   if (!data) {
-    return <p className="py-8 text-center text-sm text-zinc-400">Loading…</p>
+    return <p className="py-8 text-center text-sm text-zinc-400">{t("Loading…")}</p>
   }
 
   const dayLabel = (iso: string) => {
@@ -71,15 +73,15 @@ export function CalendarView(props: {
     <Card>
       <CardHeader>
         <div>
-          <CardTitle>Availability · {rangeLabel(data.dates)}</CardTitle>
+          <CardTitle>{t("Availability · {range}", { range: rangeLabel(data.dates) })}</CardTitle>
           <span className="text-xs text-zinc-400">
-            Click a cell to start a booking
+            {t("Click a cell to start a booking")}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
           <Button
             variant="outline"
-            aria-label="Previous 14 days"
+            aria-label={t("Previous 14 days")}
             onClick={() => setStart((s) => shift(s, -DAYS))}
           >
             <ChevronLeft className="size-4" aria-hidden />
@@ -89,18 +91,18 @@ export function CalendarView(props: {
             disabled={start === iso(new Date())}
             onClick={() => setStart(iso(new Date()))}
           >
-            <CalendarDays className="size-4" aria-hidden /> Today
+            <CalendarDays className="size-4" aria-hidden /> {t("Today")}
           </Button>
           <input
             type="date"
-            aria-label="Jump to date"
+            aria-label={t("Jump to date")}
             className="rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-sm focus:outline-2 focus:outline-offset-1 focus:outline-brand-600"
             value={start}
             onChange={(e) => e.target.value && setStart(e.target.value)}
           />
           <Button
             variant="outline"
-            aria-label="Next 14 days"
+            aria-label={t("Next 14 days")}
             onClick={() => setStart((s) => shift(s, DAYS))}
           >
             <ChevronRight className="size-4" aria-hidden />
@@ -113,7 +115,7 @@ export function CalendarView(props: {
             <thead>
               <tr>
                 <th className="sticky left-0 bg-white pr-3 text-left text-xs font-medium text-zinc-500">
-                  Room type
+                  {t("Room type")}
                 </th>
                 {data.dates.map((d) => {
                   const l = dayLabel(d)
@@ -148,7 +150,7 @@ export function CalendarView(props: {
                       <button
                         onClick={() => props.onPick?.(rt.room_type, c.date)}
                         disabled={c.available === 0 || !props.onPick}
-                        title={`${rt.room_type_name} · ${c.date} · ${c.available} left · ${cur()}${inr(c.rate)}`}
+                        title={t("{room_type} · {date} · {n} left · {rate}", { room_type: rt.room_type_name, date: c.date, n: c.available, rate: `${cur()}${inr(c.rate)}` })}
                         className={cn(
                           "w-full rounded-md border border-zinc-200 px-1 py-1.5 text-center transition-colors",
                           props.onPick && "hover:border-brand-600",
@@ -172,8 +174,7 @@ export function CalendarView(props: {
           </table>
         </div>
         <p className="mt-3 text-xs text-zinc-400">
-          Number = rooms available · price = 2-adult nightly rate with seasons
-          applied. Weekend columns in green.
+          {t("Number = rooms available · price = 2-adult nightly rate with seasons applied. Weekend columns in green.")}
         </p>
       </CardContent>
     </Card>

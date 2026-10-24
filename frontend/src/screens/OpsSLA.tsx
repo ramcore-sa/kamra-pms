@@ -3,6 +3,7 @@ import { AlarmClock } from "lucide-react"
 
 import { call, getCurrentProperty } from "../lib/api"
 import { serverError } from "../lib/resource"
+import { t, useT } from "../lib/i18n"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Badge } from "../components/ui/badge"
 
@@ -40,9 +41,9 @@ const inputCls =
 
 function humanMins(m: number | null): string {
   if (m == null) return "—"
-  if (m < 60) return `${m} min`
+  if (m < 60) return t("{n} min", { n: m })
   const h = m / 60
-  return h < 24 ? `${h.toFixed(1)} h` : `${(h / 24).toFixed(1)} d`
+  return h < 24 ? t("{n} h", { n: h.toFixed(1) }) : t("{n} d", { n: (h / 24).toFixed(1) })
 }
 
 function isoDaysAgo(days: number): string {
@@ -56,6 +57,7 @@ function breachTone(pct: number): "rose" | "amber" | "brand" {
 }
 
 export default function OpsSLA() {
+  const { t } = useT()
   const [from, setFrom] = useState(isoDaysAgo(30))
   const [to, setTo] = useState(new Date().toISOString().slice(0, 10))
   const [data, setData] = useState<Sla | null>(null)
@@ -79,28 +81,28 @@ export default function OpsSLA() {
   const GroupTable = ({ title, rows }: { title: string; rows: Group[] }) => (
     <Card>
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <CardTitle>{t(title)}</CardTitle>
       </CardHeader>
       <CardContent>
         {rows.length === 0 ? (
-          <p className="py-6 text-center text-sm text-zinc-400">No tickets.</p>
+          <p className="py-6 text-center text-sm text-zinc-400">{t("No tickets.")}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-zinc-200 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                  <th className="py-2 pr-3">{title.includes("category") ? "Category" : "Priority"}</th>
-                  <th className="py-2 pr-3 text-right">Tickets</th>
-                  <th className="py-2 pr-3 text-right">Resolved</th>
-                  <th className="py-2 pr-3 text-right">Breached</th>
-                  <th className="py-2 pr-3 text-right">Breach %</th>
-                  <th className="py-2 text-right">Avg resolve</th>
+                  <th className="py-2 pr-3">{title.includes("category") ? t("Category") : t("Priority")}</th>
+                  <th className="py-2 pr-3 text-right">{t("Tickets")}</th>
+                  <th className="py-2 pr-3 text-right">{t("Resolved")}</th>
+                  <th className="py-2 pr-3 text-right">{t("Breached")}</th>
+                  <th className="py-2 pr-3 text-right">{t("Breach %")}</th>
+                  <th className="py-2 text-right">{t("Avg resolve")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
                 {rows.map((r) => (
                   <tr key={r.label}>
-                    <td className="py-2 pr-3 font-medium">{r.label}</td>
+                    <td className="py-2 pr-3 font-medium">{t(r.label)}</td>
                     <td className="py-2 pr-3 text-right tabular-nums">{r.count}</td>
                     <td className="py-2 pr-3 text-right tabular-nums">{r.resolved}</td>
                     <td className="py-2 pr-3 text-right tabular-nums">{r.breached}</td>
@@ -126,10 +128,10 @@ export default function OpsSLA() {
         <div>
           <h1 className="flex items-center gap-2 text-xl font-bold text-zinc-800">
             <AlarmClock className="size-5 text-brand-600" />
-            Operations SLA
+            {t("Operations SLA")}
           </h1>
           <p className="text-xs text-zinc-500">
-            Are guest requests being resolved inside their promised window?
+            {t("Are guest requests being resolved inside their promised window?")}
           </p>
         </div>
         <div className="flex items-center gap-2 text-sm">
@@ -163,7 +165,7 @@ export default function OpsSLA() {
               <Card key={label}>
                 <CardContent className="p-4">
                   <div className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">
-                    {label}
+                    {t(label)}
                   </div>
                   <div className={`mt-1 text-2xl font-bold ${tone}`}>{val}</div>
                 </CardContent>
@@ -179,10 +181,10 @@ export default function OpsSLA() {
           <Card>
             <CardHeader>
               <CardTitle>
-                Overdue now
+                {t("Overdue now")}
                 {data.overdue.length > 0 && (
                   <span className="ml-2 text-sm font-normal text-rose-600">
-                    {data.overdue.length} past due
+                    {t("{n} past due", { n: data.overdue.length })}
                   </span>
                 )}
               </CardTitle>
@@ -190,27 +192,27 @@ export default function OpsSLA() {
             <CardContent>
               {data.overdue.length === 0 ? (
                 <p className="py-6 text-center text-sm text-zinc-400">
-                  Nothing overdue — every open request is inside its window.
+                  {t("Nothing overdue — every open request is inside its window.")}
                 </p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-zinc-200 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                        <th className="py-2 pr-3">Ticket</th>
-                        <th className="py-2 pr-3">Category</th>
-                        <th className="py-2 pr-3">Priority</th>
-                        <th className="py-2 text-right">Overdue by</th>
+                        <th className="py-2 pr-3">{t("Ticket")}</th>
+                        <th className="py-2 pr-3">{t("Category")}</th>
+                        <th className="py-2 pr-3">{t("Priority")}</th>
+                        <th className="py-2 text-right">{t("Overdue by")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-100">
                       {data.overdue.map((o) => (
                         <tr key={o.name}>
                           <td className="py-2 pr-3 font-mono text-xs">{o.name}</td>
-                          <td className="py-2 pr-3">{o.category}</td>
-                          <td className="py-2 pr-3">{o.priority}</td>
+                          <td className="py-2 pr-3">{t(o.category)}</td>
+                          <td className="py-2 pr-3">{t(o.priority)}</td>
                           <td className="py-2 text-right tabular-nums text-rose-600">
-                            {o.overdue_hours} h
+                            {t("{n} h", { n: o.overdue_hours })}
                           </td>
                         </tr>
                       ))}

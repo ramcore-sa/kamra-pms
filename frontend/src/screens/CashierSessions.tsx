@@ -4,6 +4,7 @@ import { call, getCurrentProperty } from "../lib/api"
 import { serverError } from "../lib/resource"
 import { Badge } from "../components/ui/badge"
 import { moneyLocale } from "../lib/money"
+import { useT } from "../lib/i18n"
 
 const inr = (n: unknown) =>
   Number(n ?? 0).toLocaleString(moneyLocale(), { maximumFractionDigits: 0 })
@@ -24,6 +25,7 @@ type Row = {
 }
 
 export default function CashierSessions() {
+  const { t } = useT()
   const [rows, setRows] = useState<Row[]>([])
   const [date, setDate] = useState("")
   const [err, setErr] = useState<string | null>(null)
@@ -53,12 +55,12 @@ export default function CashierSessions() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-            Cashier
+            {t("Cashier")}
           </p>
-          <h1 className="text-2xl font-semibold">Sessions</h1>
+          <h1 className="text-2xl font-semibold">{t("Sessions")}</h1>
         </div>
         <label className="text-sm">
-          <span className="mr-2 text-zinc-500">Business date</span>
+          <span className="mr-2 text-zinc-500">{t("Business date")}</span>
           <input
             type="date"
             className="rounded-lg border border-zinc-300 px-2 py-1.5"
@@ -74,13 +76,13 @@ export default function CashierSessions() {
         <table className="w-full text-left text-sm">
           <thead className="border-b border-zinc-100 text-xs uppercase tracking-wide text-zinc-400">
             <tr>
-              <th className="px-3 py-2">Cashier</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2">Float</th>
-              <th className="px-3 py-2">Cash</th>
-              <th className="px-3 py-2">Expected</th>
-              <th className="px-3 py-2">Counted</th>
-              <th className="px-3 py-2">Variance</th>
+              <th className="px-3 py-2">{t("Cashier")}</th>
+              <th className="px-3 py-2">{t("Status")}</th>
+              <th className="px-3 py-2">{t("Float")}</th>
+              <th className="px-3 py-2">{t("Cash")}</th>
+              <th className="px-3 py-2">{t("Expected")}</th>
+              <th className="px-3 py-2">{t("Counted")}</th>
+              <th className="px-3 py-2">{t("Variance")}</th>
             </tr>
           </thead>
           <tbody>
@@ -97,7 +99,7 @@ export default function CashierSessions() {
                 </td>
                 <td className="px-3 py-2">
                   <Badge tone={r.status === "Open" ? "green" : "zinc"}>
-                    {r.status}
+                    {t(r.status)}
                   </Badge>
                 </td>
                 <td className="px-3 py-2 tabular-nums">{inr(r.opening_float)}</td>
@@ -110,7 +112,7 @@ export default function CashierSessions() {
             {!rows.length ? (
               <tr>
                 <td colSpan={7} className="px-3 py-8 text-center text-zinc-400">
-                  No sessions for this date.
+                  {t("No sessions for this date.")}
                 </td>
               </tr>
             ) : null}

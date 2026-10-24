@@ -10,6 +10,7 @@ import {
 
 import { call } from "../lib/api"
 import { cur, moneyLocale } from "../lib/money"
+import { useT } from "../lib/i18n"
 
 /** The connective tissue, rendered: one strip of chips on any record that
  *  jumps straight to its guest, folios (billing), company, group or event.
@@ -48,6 +49,7 @@ export default function LinkedRecords({
   /** hide chip kinds that would link back to the current screen */
   exclude?: ("guest" | "folio" | "company" | "group" | "event")[]
 }) {
+  const { t } = useT()
   const [links, setLinks] = useState<Links | null>(null)
   const navigate = useNavigate()
 
@@ -70,7 +72,7 @@ export default function LinkedRecords({
         onClick={() => navigate(`/guests/${encodeURIComponent(links.guest!)}`)}
       >
         <UserCircle2 className="size-3.5" aria-hidden />
-        {links.guest_name || "Guest"}
+        {links.guest_name || t("Guest")}
       </button>,
     )
   if (!exclude.includes("folio"))
@@ -80,10 +82,10 @@ export default function LinkedRecords({
           key={f.name}
           className={chipCls}
           onClick={() => navigate(`/billing/${encodeURIComponent(f.name)}`)}
-          title={f.invoice_number ? `Invoice ${f.invoice_number}` : "Open folio"}
+          title={f.invoice_number ? t("Invoice {n}", { n: f.invoice_number }) : t("Open folio")}
         >
           <Receipt className="size-3.5" aria-hidden />
-          {f.folio_type} folio
+          {t("{type} folio", { type: t(f.folio_type) })}
           <span
             className={
               f.balance > 0 ? "text-amber-600" : "text-zinc-400"
@@ -99,10 +101,10 @@ export default function LinkedRecords({
         key="group"
         className={chipCls}
         onClick={() => navigate("/groups")}
-        title="Open Groups & Blocks"
+        title={t("Open Groups & Blocks")}
       >
         <Users className="size-3.5" aria-hidden />
-        {links.group_name || "Group"}
+        {links.group_name || t("Group")}
       </button>,
     )
   if (links.event && !exclude.includes("event"))
@@ -111,10 +113,10 @@ export default function LinkedRecords({
         key="event"
         className={chipCls}
         onClick={() => navigate("/events")}
-        title="Open Event Bookings"
+        title={t("Open Event Bookings")}
       >
         <PartyPopper className="size-3.5" aria-hidden />
-        {links.event_type || "Event"}
+        {links.event_type ? t(links.event_type) : t("Event")}
       </button>,
     )
   if (links.company && !exclude.includes("company"))
@@ -123,7 +125,7 @@ export default function LinkedRecords({
         key="company"
         className={chipCls}
         onClick={() => navigate("/companies")}
-        title="Open Companies"
+        title={t("Open Companies")}
       >
         <Building2 className="size-3.5" aria-hidden />
         {links.company}

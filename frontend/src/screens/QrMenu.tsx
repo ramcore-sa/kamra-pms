@@ -4,6 +4,7 @@ import { Plus, Minus, Leaf, ShoppingBag } from "lucide-react"
 import { call } from "../lib/api"
 import { accentVars } from "../lib/accents"
 import { cur, moneyLocale, adoptUiLocale } from "../lib/money"
+import { useT } from "../lib/i18n"
 
 const inr = (n: unknown) =>
   Number(n ?? 0).toLocaleString(moneyLocale(), { maximumFractionDigits: 0 })
@@ -28,6 +29,7 @@ interface Menu {
 /** Guest-facing digital menu behind a table/room QR code. */
 export default function QrMenu() {
   const { outlet = "" } = useParams()
+  const { t } = useT()
   const [params] = useSearchParams()
   const room = params.get("room") || ""
   const table = params.get("table") || ""
@@ -79,7 +81,7 @@ export default function QrMenu() {
   if (error && !menu)
     return <div className="mx-auto max-w-lg p-8 text-center text-zinc-500">{error}</div>
   if (!menu)
-    return <div className="p-10 text-center text-zinc-400">Loading menu…</div>
+    return <div className="p-10 text-center text-zinc-400">{t("Loading menu…")}</div>
 
   return (
     <div className="min-h-screen bg-zinc-50 pb-28" style={accentVars("Emerald")}>
@@ -87,7 +89,11 @@ export default function QrMenu() {
         <h1 className="text-lg font-bold text-zinc-800">{menu.outlet_name}</h1>
         <p className="text-xs text-zinc-500">
           {menu.property_name}
-          {room ? ` · Room ${room.split("-").pop()}` : table ? ` · Table ${table}` : ""}
+          {room
+            ? ` · ${t("Room {n}", { n: room.split("-").pop() ?? "" })}`
+            : table
+              ? ` · ${t("Table {n}", { n: table })}`
+              : ""}
         </p>
       </header>
 
@@ -98,7 +104,7 @@ export default function QrMenu() {
             <p className="font-medium">{done}</p>
           </div>
           <button className="mt-4 text-sm font-medium text-brand-700" onClick={() => setDone(null)}>
-            Order more
+            {t("Order more")}
           </button>
         </div>
       ) : (
@@ -140,11 +146,11 @@ export default function QrMenu() {
         <div className="fixed inset-x-0 bottom-0 border-t border-zinc-200 bg-white p-3">
           <button disabled={busy} onClick={order}
             className="mx-auto flex w-full max-w-lg items-center justify-between rounded-xl bg-brand-600 px-4 py-3 font-semibold text-white disabled:opacity-60">
-            <span>{count} item{count === 1 ? "" : "s"}</span>
-            <span>Place order · {cur()}{inr(total)}</span>
+            <span>{count === 1 ? t("1 item") : t("{n} items", { n: count })}</span>
+            <span>{t("Place order · {amt}", { amt: cur() + inr(total) })}</span>
           </button>
           <p className="mx-auto mt-1 max-w-lg text-center text-[11px] text-zinc-400">
-            A server confirms your order before the kitchen starts.
+            {t("A server confirms your order before the kitchen starts.")}
           </p>
         </div>
       )}

@@ -5,6 +5,7 @@ import { Button } from "../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { moneyLocale } from "../lib/money"
 import { useAuth } from "../lib/auth"
+import { useT } from "../lib/i18n"
 import CityLedgerPayment from "./CityLedgerPayment"
 
 // recording a company's payment is a Finance action (the server gates it too)
@@ -23,6 +24,7 @@ type Ledger = {
 }
 
 export default function Ledgers() {
+  const { t } = useT()
   const [date, setDate] = useState("")
   const [ledgers, setLedgers] = useState<Ledger[]>([])
   const [inBalance, setInBalance] = useState(true)
@@ -79,11 +81,11 @@ export default function Ledgers() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-            Books
+            {t("Books")}
           </p>
-          <h1 className="text-2xl font-semibold">Ledgers</h1>
+          <h1 className="text-2xl font-semibold">{t("Ledgers")}</h1>
           <p className="text-sm text-zinc-500">
-            Guest · Deposit · AR · Package trial balance
+            {t("Guest · Deposit · AR · Package trial balance")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -94,7 +96,7 @@ export default function Ledgers() {
             onChange={(e) => setDate(e.target.value)}
           />
           <Button variant="outline" onClick={() => void load()}>
-            Refresh
+            {t("Refresh")}
           </Button>
         </div>
       </div>
@@ -108,8 +110,11 @@ export default function Ledgers() {
         }`}
       >
         {inBalance
-          ? "Trial balance is in balance."
-          : `Out of balance — debit ${inr(totals.debit)} vs credit ${inr(totals.credit)}.`}
+          ? t("Trial balance is in balance.")
+          : t("Out of balance — debit {debit} vs credit {credit}.", {
+              debit: inr(totals.debit),
+              credit: inr(totals.credit),
+            })}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -117,7 +122,7 @@ export default function Ledgers() {
           <Card key={l.ledger}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-zinc-500">
-                {l.ledger} ledger
+                {t("{ledger} ledger", { ledger: t(l.ledger) })}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -125,7 +130,7 @@ export default function Ledgers() {
                 {inr(l.balance)}
               </p>
               <p className="mt-1 text-xs text-zinc-400">
-                Dr {inr(l.debit)} · Cr {inr(l.credit)}
+                {t("Dr {debit} · Cr {credit}", { debit: inr(l.debit), credit: inr(l.credit) })}
               </p>
             </CardContent>
           </Card>
@@ -135,18 +140,18 @@ export default function Ledgers() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            Journal by transaction code
+            {t("Journal by transaction code")}
           </CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="text-xs uppercase text-zinc-400">
               <tr>
-                <th className="py-2 pr-3">Code</th>
-                <th className="py-2 pr-3">Description</th>
-                <th className="py-2 pr-3">Debit</th>
-                <th className="py-2 pr-3">Credit</th>
-                <th className="py-2">Entries</th>
+                <th className="py-2 pr-3">{t("Code")}</th>
+                <th className="py-2 pr-3">{t("Description")}</th>
+                <th className="py-2 pr-3">{t("Debit")}</th>
+                <th className="py-2 pr-3">{t("Credit")}</th>
+                <th className="py-2">{t("Entries")}</th>
               </tr>
             </thead>
             <tbody>
@@ -168,19 +173,19 @@ export default function Ledgers() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">City ledger aging</CardTitle>
+          <CardTitle className="text-base">{t("City ledger aging")}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="text-xs uppercase text-zinc-400">
               <tr>
-                <th className="py-2 pr-3">Company</th>
-                <th className="py-2 pr-3">Balance</th>
+                <th className="py-2 pr-3">{t("Company")}</th>
+                <th className="py-2 pr-3">{t("Balance")}</th>
                 <th className="py-2 pr-3">0–30</th>
                 <th className="py-2 pr-3">31–60</th>
                 <th className="py-2 pr-3">61–90</th>
                 <th className="py-2 pr-3">90+</th>
-                <th className="py-2 pr-3">Credit</th>
+                <th className="py-2 pr-3">{t("Credit")}</th>
                 {canSettle ? <th className="py-2" /> : null}
               </tr>
             </thead>
@@ -201,7 +206,7 @@ export default function Ledgers() {
                   {canSettle ? (
                     <td className="py-2 text-right">
                       <Button variant="outline" onClick={() => setPaying(String(a.name))}>
-                        Record payment
+                        {t("Record payment")}
                       </Button>
                     </td>
                   ) : null}
@@ -210,7 +215,7 @@ export default function Ledgers() {
               {!aging.length ? (
                 <tr>
                   <td colSpan={canSettle ? 8 : 7} className="py-6 text-center text-zinc-400">
-                    No city ledger accounts yet.
+                    {t("No city ledger accounts yet.")}
                   </td>
                 </tr>
               ) : null}

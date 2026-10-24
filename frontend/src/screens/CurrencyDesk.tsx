@@ -5,6 +5,7 @@ import { useCashierAuth } from "../lib/cashierAuth"
 import { Button } from "../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { moneyLocale } from "../lib/money"
+import { useT } from "../lib/i18n"
 
 const inr = (n: unknown) =>
   Number(n ?? 0).toLocaleString(moneyLocale(), {
@@ -13,6 +14,7 @@ const inr = (n: unknown) =>
 
 export default function CurrencyDesk() {
   const { withPin } = useCashierAuth()
+  const { t } = useT()
   const [rates, setRates] = useState<
     {
       currency: string
@@ -109,16 +111,16 @@ export default function CurrencyDesk() {
     <div className="mx-auto max-w-4xl space-y-4 p-4 sm:p-6">
       <div>
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-          Cashier
+          {t("Cashier")}
         </p>
-        <h1 className="text-2xl font-semibold">Currency Desk</h1>
+        <h1 className="text-2xl font-semibold">{t("Currency Desk")}</h1>
       </div>
       {err ? <p className="text-sm text-rose-600">{err}</p> : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Calculator</CardTitle>
+            <CardTitle className="text-base">{t("Calculator")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex flex-wrap gap-2">
@@ -138,8 +140,8 @@ export default function CurrencyDesk() {
                 value={direction}
                 onChange={(e) => setDirection(e.target.value as "Buy" | "Sell")}
               >
-                <option value="Buy">Buy (guest sells FX)</option>
-                <option value="Sell">Sell (guest buys FX)</option>
+                <option value="Buy">{t("Buy (guest sells FX)")}</option>
+                <option value="Sell">{t("Sell (guest buys FX)")}</option>
               </select>
               <input
                 className="w-28 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm"
@@ -149,20 +151,21 @@ export default function CurrencyDesk() {
             </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => void doCalc()}>
-                Calculate
+                {t("Calculate")}
               </Button>
-              <Button onClick={() => void post()}>Post exchange</Button>
+              <Button onClick={() => void post()}>{t("Post exchange")}</Button>
             </div>
             {calc ? (
               <p className="text-sm text-zinc-600">
-                Rate {String(calc.exchange_rate)} → local{" "}
-                <span className="font-semibold tabular-nums">
-                  {inr(calc.local_amount)}
-                </span>
                 {Number(calc.service_tax) > 0
-                  ? ` + tax ${inr(calc.service_tax)}`
-                  : ""}{" "}
-                = {inr(calc.total)}
+                  ? t("Rate {rate} → local {local} + tax {tax} = {total}", {
+                      rate: String(calc.exchange_rate), local: inr(calc.local_amount),
+                      tax: inr(calc.service_tax), total: inr(calc.total),
+                    })
+                  : t("Rate {rate} → local {local} = {total}", {
+                      rate: String(calc.exchange_rate), local: inr(calc.local_amount),
+                      total: inr(calc.total),
+                    })}
               </p>
             ) : null}
           </CardContent>
@@ -170,7 +173,7 @@ export default function CurrencyDesk() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Set rate</CardTitle>
+            <CardTitle className="text-base">{t("Set rate")}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             <input
@@ -179,13 +182,13 @@ export default function CurrencyDesk() {
               onChange={(e) =>
                 setNewRate((r) => ({ ...r, currency: e.target.value }))
               }
-              placeholder="CCY"
+              placeholder={t("CCY")}
             />
             <input
               className="w-24 rounded-lg border px-2 py-1.5 text-sm"
               value={newRate.buy}
               onChange={(e) => setNewRate((r) => ({ ...r, buy: e.target.value }))}
-              placeholder="Buy"
+              placeholder={t("Buy")}
             />
             <input
               className="w-24 rounded-lg border px-2 py-1.5 text-sm"
@@ -193,10 +196,10 @@ export default function CurrencyDesk() {
               onChange={(e) =>
                 setNewRate((r) => ({ ...r, sell: e.target.value }))
               }
-              placeholder="Sell"
+              placeholder={t("Sell")}
             />
             <Button variant="outline" onClick={() => void saveRate()}>
-              Save
+              {t("Save")}
             </Button>
           </CardContent>
         </Card>
@@ -206,10 +209,10 @@ export default function CurrencyDesk() {
         <table className="w-full text-left text-sm">
           <thead className="border-b text-xs uppercase text-zinc-400">
             <tr>
-              <th className="px-3 py-2">Currency</th>
-              <th className="px-3 py-2">Buy</th>
-              <th className="px-3 py-2">Sell</th>
-              <th className="px-3 py-2">Tax %</th>
+              <th className="px-3 py-2">{t("Currency")}</th>
+              <th className="px-3 py-2">{t("Buy")}</th>
+              <th className="px-3 py-2">{t("Sell")}</th>
+              <th className="px-3 py-2">{t("Tax %")}</th>
             </tr>
           </thead>
           <tbody>
@@ -226,21 +229,21 @@ export default function CurrencyDesk() {
       </div>
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold">Today&apos;s exchanges</h2>
+        <h2 className="mb-2 text-sm font-semibold">{t("Today's exchanges")}</h2>
         <div className="overflow-x-auto rounded-xl border bg-white">
           <table className="w-full text-left text-sm">
             <thead className="border-b text-xs uppercase text-zinc-400">
               <tr>
-                <th className="px-3 py-2">Dir</th>
-                <th className="px-3 py-2">FX</th>
-                <th className="px-3 py-2">Rate</th>
-                <th className="px-3 py-2">Local</th>
+                <th className="px-3 py-2">{t("Dir")}</th>
+                <th className="px-3 py-2">{t("FX")}</th>
+                <th className="px-3 py-2">{t("Rate")}</th>
+                <th className="px-3 py-2">{t("Local")}</th>
               </tr>
             </thead>
             <tbody>
               {history.map((h) => (
                 <tr key={String(h.name)} className="border-t">
-                  <td className="px-3 py-2">{String(h.direction)}</td>
+                  <td className="px-3 py-2">{t(String(h.direction))}</td>
                   <td className="px-3 py-2">
                     {String(h.fx_amount)} {String(h.currency)}
                   </td>

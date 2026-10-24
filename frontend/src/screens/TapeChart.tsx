@@ -389,8 +389,11 @@ export default function TapeChart() {
           </span>{" "}
           {data!.conflicts.map((c) => (
             <span key={c.in_res} className="mr-3 whitespace-nowrap">
-              Room {c.room_number} on {new Date(c.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} —
-              out {c.etd} ({c.out_guest}) / in {c.eta} ({c.in_guest})
+              {t("Room {room} on {date} — out {etd} ({out_guest}) / in {eta} ({in_guest})", {
+                room: c.room_number,
+                date: new Date(c.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" }),
+                etd: c.etd, out_guest: c.out_guest, eta: c.eta, in_guest: c.in_guest,
+              })}
             </span>
           ))}
         </div>
@@ -422,10 +425,10 @@ export default function TapeChart() {
             </div>
             {data?.position?.map((p) => (
               <div key={p.date} style={{ width: cellW }}
-                title={`${p.sold}/${p.capacity} sold (${p.occupancy}%)` +
-                  (p.limit > p.capacity ? ` · can sell to ${p.limit} (overbooking)` : "") +
-                  (p.premium_pct ? ` · demand premium +${p.premium_pct}%` : "") +
-                  (p.min_rate ? ` · hurdle ${cur()}${p.min_rate.toLocaleString(moneyLocale())}` : "")}
+                title={t("{sold}/{capacity} sold ({pct}%)", { sold: p.sold, capacity: p.capacity, pct: p.occupancy }) +
+                  (p.limit > p.capacity ? " · " + t("can sell to {n} (overbooking)", { n: p.limit }) : "") +
+                  (p.premium_pct ? " · " + t("demand premium +{pct}%", { pct: p.premium_pct }) : "") +
+                  (p.min_rate ? " · " + t("hurdle {amount}", { amount: `${cur()}${p.min_rate.toLocaleString(moneyLocale())}` }) : "")}
                 className={cn("shrink-0 border-l border-zinc-100 px-1 py-1 text-center tabular-nums",
                   p.overbooked ? "bg-rose-50 font-bold text-rose-600"
                     : p.occupancy >= 80 ? "bg-emerald-50 font-semibold text-emerald-700"
@@ -793,7 +796,7 @@ function TapeHourly({
                     "absolute top-2 flex h-9 items-center gap-1 truncate rounded-md px-1.5 text-left text-xs font-medium text-white",
                     b.status === "Checked In" ? "bg-brand-600 hover:bg-brand-700" : "bg-sky-500 hover:bg-sky-600",
                   )}
-                  title={`${b.guest_name} · ${b.from_hour}-${b.to_hour} · day use`}
+                  title={`${b.guest_name} · ${b.from_hour}-${b.to_hour} · ${t("day use")}`}
                 >
                   {seg.vip ? (
                     <Star className="size-3 shrink-0 fill-amber-300 text-amber-300" />

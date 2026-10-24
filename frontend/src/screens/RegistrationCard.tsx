@@ -127,6 +127,7 @@ function OccupantsEditor(props: {
   occupants: Occupant[]
   onSaved: () => void
 }) {
+  const { t } = useT()
   const loc = useLocale()
   const idTypes = loc.id_types
   /** A minor is recorded by name and age; ID only where the register needs it. */
@@ -162,24 +163,23 @@ function OccupantsEditor(props: {
 
   return (
     <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-4 print:hidden">
-      <h2 className="text-sm font-semibold">Occupant register</h2>
+      <h2 className="text-sm font-semibold">{t("Occupant register")}</h2>
       <p className="mb-3 mt-0.5 text-xs text-zinc-400">
-        Everyone staying in the room - required for the hotel register.
-        Saved occupants print on the GRC above.
+        {t("Everyone staying in the room - required for the hotel register. Saved occupants print on the GRC above.")}
       </p>
       <div className="space-y-2">
         {rows.map((o, i) => (
           <div key={i} className="flex flex-wrap items-center gap-1.5">
             <input
               className={`${editInputCls} w-40`}
-              placeholder="Full name"
+              placeholder={t("Full name")}
               value={o.full_name}
               onChange={(e) => set(i, { full_name: e.target.value })}
             />
             <input
               className={`${editInputCls} w-16`}
               type="number"
-              placeholder="Age"
+              placeholder={t("Age")}
               value={o.age ?? ""}
               onChange={(e) =>
                 set(i, { age: e.target.value === "" ? null : Number(e.target.value) })
@@ -190,23 +190,23 @@ function OccupantsEditor(props: {
               value={o.gender ?? ""}
               onChange={(e) => set(i, { gender: e.target.value })}
             >
-              <option value="">Gender</option>
+              <option value="">{t("Gender")}</option>
               {["Male", "Female", "Other"].map((g) => (
-                <option key={g}>{g}</option>
+                <option key={g} value={g}>{t(g)}</option>
               ))}
             </select>
             <input
               className={`${editInputCls} w-24`}
-              placeholder="Nationality"
+              placeholder={t("Nationality")}
               value={o.nationality ?? ""}
               onChange={(e) => set(i, { nationality: e.target.value })}
             />
             {noMinorId(o) ? (
               <span
                 className="text-xs text-zinc-400"
-                title="Children's data: the register needs only name and age, so no ID is kept"
+                title={t("Children's data: the register needs only name and age, so no ID is kept")}
               >
-                Under {loc.adult_age}: name and age only
+                {t("Under {age}: name and age only", { age: loc.adult_age })}
               </span>
             ) : (<>
             <select
@@ -214,18 +214,18 @@ function OccupantsEditor(props: {
               value={o.id_type ?? ""}
               onChange={(e) => set(i, { id_type: e.target.value })}
             >
-              <option value="">ID type</option>
+              <option value="">{t("ID type")}</option>
               {/* a value recorded under another list stays visible */}
               {[
                 ...idTypes,
                 ...(o.id_type && !idTypes.includes(o.id_type) ? [o.id_type] : []),
-              ].map((t) => (
-                <option key={t}>{t}</option>
+              ].map((ty) => (
+                <option key={ty} value={ty}>{t(ty)}</option>
               ))}
             </select>
             <input
               className={`${editInputCls} w-36`}
-              placeholder="ID number"
+              placeholder={t("ID number")}
               value={o.id_number ?? ""}
               onChange={(e) => set(i, { id_number: e.target.value })}
             />
@@ -236,10 +236,10 @@ function OccupantsEditor(props: {
                     ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                     : "border-zinc-200 text-zinc-500 hover:border-brand-400 hover:text-brand-700"
                 }`}
-                title={o.id_file ? "Replace this occupant's ID document" : "Capture or upload this occupant's ID document"}
+                title={o.id_file ? t("Replace this occupant's ID document") : t("Capture or upload this occupant's ID document")}
               >
                 <Camera className="size-3.5" aria-hidden />
-                {o.id_file ? "ID ✓ Replace" : "Capture ID"}
+                {o.id_file ? t("ID ✓ Replace") : t("Capture ID")}
                 <input
                   type="file"
                   accept="image/*"
@@ -262,14 +262,14 @@ function OccupantsEditor(props: {
                 />
               </label>
             ) : (
-              <span className="text-xs text-zinc-400" title="Save the register first, then capture this occupant's ID">
-                save row → ID
+              <span className="text-xs text-zinc-400" title={t("Save the register first, then capture this occupant's ID")}>
+                {t("save row → ID")}
               </span>
             )}
             </>)}
             <button
               className="rounded p-1 text-zinc-400 hover:text-rose-500"
-              aria-label="Remove occupant"
+              aria-label={t("Remove occupant")}
               onClick={() => setRows((r) => r.filter((_, j) => j !== i))}
             >
               <Trash2 className="size-4" aria-hidden />
@@ -282,10 +282,10 @@ function OccupantsEditor(props: {
           variant="outline"
           onClick={() => setRows((r) => [...r, emptyOccupant()])}
         >
-          <Plus className="size-4" aria-hidden /> Add occupant
+          <Plus className="size-4" aria-hidden /> {t("Add occupant")}
         </Button>
         <Button disabled={busy} onClick={save}>
-          {busy ? "Saving…" : "Save register"}
+          {busy ? t("Saving…") : t("Save register")}
         </Button>
       </div>
     </div>
@@ -318,6 +318,7 @@ function ActualTimeRow(props: {
   value?: string | null
   onSaved: () => void
 }) {
+  const { t } = useT()
   const [editing, setEditing] = useState(false)
   const [val, setVal] = useState("")
   const [busy, setBusy] = useState(false)
@@ -361,13 +362,13 @@ function ActualTimeRow(props: {
                 setEditing(false)
                 props.onSaved()
               } catch (e) {
-                setError(e instanceof Error ? e.message : "Could not save")
+                setError(e instanceof Error ? e.message : t("Could not save"))
               } finally {
                 setBusy(false)
               }
             }}
           >
-            {busy ? "…" : "Save"}
+            {busy ? "…" : t("Save")}
           </Button>
           <button
             type="button"
@@ -397,7 +398,7 @@ function ActualTimeRow(props: {
               setEditing(true)
             }}
           >
-            edit
+            {t("edit")}
           </button>
         </span>
       )}

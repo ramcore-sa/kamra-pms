@@ -3,6 +3,7 @@ import { Camera, Check, Loader2, RefreshCw, TriangleAlert } from "lucide-react"
 import { call } from "../lib/api"
 import { Button } from "./ui/button"
 import { cn } from "../lib/utils"
+import { t as translate, useT } from "../lib/i18n"
 
 /* Capture a photo of a guest's ID.
  *
@@ -31,7 +32,7 @@ async function toDownscaledDataUrl(file: File): Promise<string> {
   canvas.width = Math.round(bitmap.width * scale)
   canvas.height = Math.round(bitmap.height * scale)
   const ctx = canvas.getContext("2d")
-  if (!ctx) throw new Error("Couldn't read that photo. Please try again.")
+  if (!ctx) throw new Error(translate("Couldn't read that photo. Please try again."))
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
   bitmap.close?.()
   return canvas.toDataURL("image/jpeg", QUALITY)
@@ -50,6 +51,7 @@ export function IdDocumentField({
   label?: string
   hint?: string
 }) {
+  const { t } = useT()
   const fileRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -88,7 +90,7 @@ export function IdDocumentField({
       />
 
       {preview && (
-        <img src={preview} alt="Your ID"
+        <img src={preview} alt={t("Your ID")}
           className="mb-2 max-h-44 w-auto rounded-lg border border-zinc-200" />
       )}
 
@@ -102,16 +104,16 @@ export function IdDocumentField({
         <div className="min-w-0 flex-1">
           <div className={cn("text-sm font-semibold",
             have ? "text-emerald-800" : "text-zinc-700")}>
-            {have ? "ID photo received" : label}
+            {have ? t("ID photo received") : t(label)}
           </div>
-          {hint && !have && <div className="mt-0.5 text-xs text-zinc-500">{hint}</div>}
+          {hint && !have && <div className="mt-0.5 text-xs text-zinc-500">{t(hint)}</div>}
         </div>
         <Button type="button" variant="outline" disabled={busy}
           onClick={() => fileRef.current?.click()} className="shrink-0">
           {busy ? <Loader2 className="size-4 animate-spin" />
             : have ? <RefreshCw className="size-4" />
               : <Camera className="size-4" />}
-          {busy ? "Uploading" : have ? "Replace" : "Add photo"}
+          {busy ? t("Uploading") : have ? t("Replace") : t("Add photo")}
         </Button>
       </div>
 

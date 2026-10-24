@@ -602,7 +602,7 @@ export default function Laundry() {
                         {r.item_name}
                       </p>
                       <p className="text-xs text-zinc-400">
-                        {r.service_type} · {cur()}{inr(price)}
+                        {t(r.service_type)} · {cur()}{inr(price)}
                       </p>
                     </div>
                     <Stepper
@@ -682,7 +682,7 @@ export default function Laundry() {
                         {it.item_name}
                       </p>
                       <p className="text-xs text-zinc-400">
-                        {it.service_type} · {t("collected {n}", { n: it.qty })}
+                        {t(it.service_type)} · {t("collected {n}", { n: it.qty })}
                       </p>
                     </div>
                     <Stepper
@@ -948,7 +948,7 @@ function PriceMenu({
               onChange={(e) => setForm({ ...form, service: e.target.value })}
             >
               {LAUNDRY_SERVICES.map((s) => (
-                <option key={s}>{s}</option>
+                <option key={s} value={s}>{t(s)}</option>
               ))}
             </select>
             <input
@@ -1001,7 +1001,7 @@ function PriceMenu({
               {rates.map((r) => (
                 <tr key={r.name} className="border-t border-zinc-100">
                   <td className="py-1.5 font-medium">{r.item_name}</td>
-                  <td className="text-zinc-500">{r.service_type}</td>
+                  <td className="text-zinc-500">{t(r.service_type)}</td>
                   <td className="text-right tabular-nums">{cur()}{inr(r.rate)}</td>
                   <td className="text-right tabular-nums text-zinc-500">
                     {cur()}{inr(r.express_rate)}
@@ -1113,7 +1113,7 @@ function Billing({
                       key={s.service_type}
                       className="border-t border-zinc-100"
                     >
-                      <td className="py-1.5">{s.service_type}</td>
+                      <td className="py-1.5">{t(s.service_type)}</td>
                       <td className="text-right tabular-nums">{s.pieces}</td>
                       <td className="text-right tabular-nums">
                         {cur()}{inr(s.revenue)}

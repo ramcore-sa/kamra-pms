@@ -825,33 +825,31 @@ export function AiSection({ property }: { property: string }) {
 }
 
 export function AgentAccessCard() {
+  const { t } = useT()
   return (
     <Card>
       <CardHeader>
         <div>
-          <CardTitle>Claude & MCP</CardTitle>
+          <CardTitle>{t("Claude & MCP")}</CardTitle>
           <p className="mt-0.5 text-xs text-zinc-400">
-            Connect Claude to this property's governed tools. It acts as the
-            signed-in person, within their role, and every action lands in the
-            Activity log.
+            {t("Connect Claude to this property's governed tools. It acts as the signed-in person, within their role, and every action lands in the Activity log.")}
           </p>
         </div>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         <p className="text-zinc-600">
-          Staff open{" "}
+          {t("Staff open")}{" "}
           <Link to="/assistant" className="font-medium text-brand-700 hover:underline">
-            Kamra Agent → Connect your AI
+            {t("Kamra Agent → Connect your AI")}
           </Link>{" "}
-          and click <strong>Connect Claude</strong>. Claude opens with this
-          hotel&apos;s MCP URL filled in; they confirm and sign in as themselves.
-          No API keys on a laptop.
+          {t("and click")} <strong>{t("Connect Claude")}</strong>
+          {t(". Claude opens with this hotel's MCP URL filled in; they confirm and sign in as themselves. No API keys on a laptop.")}
         </p>
         <pre className="overflow-x-auto rounded-lg bg-zinc-100 p-3 text-xs leading-relaxed text-zinc-700">
           {`claude mcp add --transport http kamra ${window.location.origin}/mcp`}
         </pre>
         <p className="text-xs text-zinc-400">
-          Service keys for unattended agents are issued by IT under Developers.
+          {t("Service keys for unattended agents are issued by IT under Developers.")}
         </p>
       </CardContent>
     </Card>
@@ -903,7 +901,7 @@ export function AppearanceCard() {
             {LANGS.map((l) => (
               <option key={l.code} value={l.code}>
                 {l.nativeLabel}
-                {l.code !== "en" ? ` (${l.englishLabel})` : ""}
+                {l.code !== "en" ? ` (${t(l.englishLabel)})` : ""}
               </option>
             ))}
           </select>
@@ -927,6 +925,7 @@ interface LaundryRate {
 /** The laundry rate card - what the floor team quotes and bills from.
  * Express defaults to 1.5x when its column is left blank. */
 export function LaundryRatesCard({ property }: { property: string }) {
+  const { t } = useT()
   const [rates, setRates] = useState<LaundryRate[]>([])
   const [form, setForm] = useState<{ name?: string; item: string; service: string; rate: string; express: string } | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -958,9 +957,9 @@ export function LaundryRatesCard({ property }: { property: string }) {
         { property, csv_text: await file.text() },
       )
       setImportMsg(
-        `${res.created} added, ${res.updated} updated` +
-        (res.issues.length ? ` — ${res.issues.length} row(s) skipped: ` +
-          res.issues.slice(0, 3).map((i) => `row ${i.row} (${i.error})`).join("; ") : ""))
+        t("{created} added, {updated} updated", { created: res.created, updated: res.updated }) +
+        (res.issues.length ? t(" — {n} row(s) skipped: ", { n: res.issues.length }) +
+          res.issues.slice(0, 3).map((i) => t("row {n} ({error})", { n: i.row, error: i.error })).join("; ") : ""))
       load()
     } catch (e) {
       setErr(serverError(e))
@@ -987,18 +986,17 @@ export function LaundryRatesCard({ property }: { property: string }) {
     <Card>
       <CardHeader>
         <div>
-          <CardTitle>Laundry rate card</CardTitle>
+          <CardTitle>{t("Laundry rate card")}</CardTitle>
           <p className="mt-0.5 text-xs text-zinc-400">
-            Per-item prices the housekeeping app quotes and bills from.
-            A blank express price uses the express multiplier above.
+            {t("Per-item prices the housekeeping app quotes and bills from. A blank express price uses the express multiplier above.")}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="ghost" disabled={rates.length === 0} onClick={exportCsv}>
-            Export CSV
+            {t("Export CSV")}
           </Button>
           <label className="inline-flex cursor-pointer items-center rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-100">
-            Import CSV
+            {t("Import CSV")}
             <input type="file" accept=".csv,text/csv" className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0]
@@ -1007,7 +1005,7 @@ export function LaundryRatesCard({ property }: { property: string }) {
               }} />
           </label>
           <Button variant="outline" onClick={() => setForm({ item: "", service: "Wash & Iron", rate: "", express: "" })}>
-            Add rate
+            {t("Add rate")}
           </Button>
         </div>
       </CardHeader>
@@ -1016,45 +1014,45 @@ export function LaundryRatesCard({ property }: { property: string }) {
         {importMsg && <p className="mb-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{importMsg}</p>}
         {form && (
           <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl bg-zinc-50 p-2">
-            <input className="w-36 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm" placeholder="Item (Shirt…)"
+            <input className="w-36 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm" placeholder={t("Item (Shirt…)")}
               value={form.item} onChange={(e) => setForm({ ...form, item: e.target.value })} autoFocus />
             <select className="rounded-lg border border-zinc-300 px-2 py-1.5 text-sm"
               value={form.service} onChange={(e) => setForm({ ...form, service: e.target.value })}>
-              {["Wash & Iron", "Dry Clean", "Iron Only"].map((s) => <option key={s}>{s}</option>)}
+              {["Wash & Iron", "Dry Clean", "Iron Only"].map((s) => <option key={s} value={s}>{t(s)}</option>)}
             </select>
-            <input className="w-24 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm" placeholder={`Rate ${cur()}`} inputMode="numeric"
+            <input className="w-24 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm" placeholder={t("Rate {cur}", { cur: cur() })} inputMode="numeric"
               value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value.replace(/[^\d.]/g, "") })} />
-            <input className="w-28 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm" placeholder={`Express ${cur()} (opt)`} inputMode="numeric"
+            <input className="w-28 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm" placeholder={t("Express {cur} (opt)", { cur: cur() })} inputMode="numeric"
               value={form.express} onChange={(e) => setForm({ ...form, express: e.target.value.replace(/[^\d.]/g, "") })} />
-            <Button disabled={!form.item.trim() || !form.rate} onClick={save}>Save</Button>
-            <Button variant="ghost" onClick={() => setForm(null)}>Cancel</Button>
+            <Button disabled={!form.item.trim() || !form.rate} onClick={save}>{t("Save")}</Button>
+            <Button variant="ghost" onClick={() => setForm(null)}>{t("Cancel")}</Button>
           </div>
         )}
         {rates.length === 0 ? (
-          <p className="py-3 text-sm text-zinc-400">No rates yet — add the first item.</p>
+          <p className="py-3 text-sm text-zinc-400">{t("No rates yet — add the first item.")}</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wide text-zinc-400">
-                <th className="py-1.5">Item</th><th>Service</th>
-                <th className="text-right">Rate</th><th className="text-right">Express</th><th />
+                <th className="py-1.5">{t("Item")}</th><th>{t("Service")}</th>
+                <th className="text-right">{t("Rate")}</th><th className="text-right">{t("Express")}</th><th />
               </tr>
             </thead>
             <tbody>
               {rates.map((r) => (
                 <tr key={r.name} className="border-t border-zinc-100">
                   <td className="py-1.5 font-medium">{r.item_name}</td>
-                  <td className="text-zinc-500">{r.service_type}</td>
+                  <td className="text-zinc-500">{t(r.service_type)}</td>
                   <td className="text-right tabular-nums">{cur()}{r.rate.toLocaleString(moneyLocale())}</td>
                   <td className="text-right tabular-nums text-zinc-500">{cur()}{r.express_rate.toLocaleString(moneyLocale())}</td>
                   <td className="text-right">
                     <button className="text-xs font-medium text-brand-700 hover:underline"
                       onClick={() => setForm({ name: r.name, item: r.item_name, service: r.service_type, rate: String(r.rate), express: "" })}>
-                      Edit
+                      {t("Edit")}
                     </button>
                     <button className="ml-2 text-xs text-zinc-400 hover:text-rose-600"
                       onClick={async () => { await call("kamra.laundry.delete_laundry_rate", { name: r.name }); load() }}>
-                      Delete
+                      {t("Delete")}
                     </button>
                   </td>
                 </tr>
@@ -1078,6 +1076,7 @@ interface HurdleTier {
 /** Demand tiers: at each occupancy threshold, quotes carry a premium and
  * manual rates can't undercut the hurdle (the minimum sell rate). */
 export function HurdleRatesCard({ property }: { property: string }) {
+  const { t } = useT()
   const [tiers, setTiers] = useState<HurdleTier[]>([])
   const [form, setForm] = useState<{ name?: string; from: string; premium: string; min: string } | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -1106,15 +1105,13 @@ export function HurdleRatesCard({ property }: { property: string }) {
     <Card>
       <CardHeader>
         <div>
-          <CardTitle>Demand pricing (hurdle rates)</CardTitle>
+          <CardTitle>{t("Demand pricing (hurdle rates)")}</CardTitle>
           <p className="mt-0.5 text-xs text-zinc-400">
-            When forecast occupancy for a date crosses a threshold, quotes
-            carry the premium automatically and no rate may sell below the
-            hurdle. Guardrails still cap the extremes.
+            {t("When forecast occupancy for a date crosses a threshold, quotes carry the premium automatically and no rate may sell below the hurdle. Guardrails still cap the extremes.")}
           </p>
         </div>
         <Button variant="outline" onClick={() => setForm({ from: "", premium: "", min: "" })}>
-          Add tier
+          {t("Add tier")}
         </Button>
       </CardHeader>
       <CardContent>
@@ -1122,53 +1119,53 @@ export function HurdleRatesCard({ property }: { property: string }) {
         {form && (
           <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl bg-zinc-50 p-2">
             <label className="flex items-center gap-1 text-sm text-zinc-600">
-              Occupancy ≥
+              {t("Occupancy ≥")}
               <input className="w-16 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm" placeholder="80" inputMode="numeric"
                 value={form.from} onChange={(e) => setForm({ ...form, from: e.target.value.replace(/[^\d.]/g, "") })} autoFocus />
               %
             </label>
             <label className="flex items-center gap-1 text-sm text-zinc-600">
-              Premium +
+              {t("Premium +")}
               <input className="w-16 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm" placeholder="15" inputMode="numeric"
                 value={form.premium} onChange={(e) => setForm({ ...form, premium: e.target.value.replace(/[^\d.]/g, "") })} />
               %
             </label>
             <label className="flex items-center gap-1 text-sm text-zinc-600">
-              Hurdle {cur()}
-              <input className="w-24 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm" placeholder="min rate" inputMode="numeric"
+              {t("Hurdle {cur}", { cur: cur() })}
+              <input className="w-24 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm" placeholder={t("min rate")} inputMode="numeric"
                 value={form.min} onChange={(e) => setForm({ ...form, min: e.target.value.replace(/[^\d.]/g, "") })} />
             </label>
-            <Button disabled={!form.from} onClick={save}>Save</Button>
-            <Button variant="ghost" onClick={() => setForm(null)}>Cancel</Button>
+            <Button disabled={!form.from} onClick={save}>{t("Save")}</Button>
+            <Button variant="ghost" onClick={() => setForm(null)}>{t("Cancel")}</Button>
           </div>
         )}
         {tiers.length === 0 ? (
           <p className="py-3 text-sm text-zinc-400">
-            No tiers yet — e.g. `at 80% occupancy, +15% premium, minimum ${cur()}6,000`.
+            {t("No tiers yet — e.g. `at 80% occupancy, +15% premium, minimum {amt}`.", { amt: `${cur()}6,000` })}
           </p>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wide text-zinc-400">
-                <th className="py-1.5">When occupancy ≥</th>
-                <th className="text-right">Premium</th>
-                <th className="text-right">Hurdle (min rate)</th><th />
+                <th className="py-1.5">{t("When occupancy ≥")}</th>
+                <th className="text-right">{t("Premium")}</th>
+                <th className="text-right">{t("Hurdle (min rate)")}</th><th />
               </tr>
             </thead>
             <tbody>
-              {tiers.map((t) => (
-                <tr key={t.name} className="border-t border-zinc-100">
-                  <td className="py-1.5 font-medium">{t.occupancy_from}%</td>
-                  <td className="text-right tabular-nums">{t.premium_pct ? `+${t.premium_pct}%` : "—"}</td>
-                  <td className="text-right tabular-nums">{t.min_rate ? `${cur()}${t.min_rate.toLocaleString(moneyLocale())}` : "—"}</td>
+              {tiers.map((tier) => (
+                <tr key={tier.name} className="border-t border-zinc-100">
+                  <td className="py-1.5 font-medium">{tier.occupancy_from}%</td>
+                  <td className="text-right tabular-nums">{tier.premium_pct ? `+${tier.premium_pct}%` : "—"}</td>
+                  <td className="text-right tabular-nums">{tier.min_rate ? `${cur()}${tier.min_rate.toLocaleString(moneyLocale())}` : "—"}</td>
                   <td className="text-right">
                     <button className="text-xs font-medium text-brand-700 hover:underline"
-                      onClick={() => setForm({ name: t.name, from: String(t.occupancy_from), premium: String(t.premium_pct || ""), min: String(t.min_rate || "") })}>
-                      Edit
+                      onClick={() => setForm({ name: tier.name, from: String(tier.occupancy_from), premium: String(tier.premium_pct || ""), min: String(tier.min_rate || "") })}>
+                      {t("Edit")}
                     </button>
                     <button className="ml-2 text-xs text-zinc-400 hover:text-rose-600"
-                      onClick={async () => { await call("kamra.api.delete_hurdle_rate", { name: t.name }); load() }}>
-                      Delete
+                      onClick={async () => { await call("kamra.api.delete_hurdle_rate", { name: tier.name }); load() }}>
+                      {t("Delete")}
                     </button>
                   </td>
                 </tr>

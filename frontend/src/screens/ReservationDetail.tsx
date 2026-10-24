@@ -38,6 +38,7 @@ import DepositPanel from "../components/DepositPanel"
 import SecurityDepositPanel from "../components/SecurityDepositPanel"
 import RoomChangeDialog from "../components/RoomChangeDialog"
 import { cur, moneyLocale } from "../lib/money"
+import { useT } from "../lib/i18n"
 
 const inr = (n: number) =>
   `${cur()}` + Number(n || 0).toLocaleString(moneyLocale(), { maximumFractionDigits: 0 })
@@ -87,6 +88,7 @@ function Field(props: { label: string; value: React.ReactNode }) {
    deny to Front Desk. Linking it would show the GM a photo and the desk a
    broken image. */
 function IdentityCard({ d, reload }: { d: Detail; reload: () => void }) {
+  const { t } = useT()
   const [img, setImg] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -115,33 +117,33 @@ function IdentityCard({ d, reload }: { d: Detail; reload: () => void }) {
   return (
     <Card
       icon={<Fingerprint className="size-4" />}
-      title="Identity"
+      title={t("Identity")}
       action={
         d.warnings.id_unverified ? (
           <Button variant="outline" disabled={busy} onClick={verify}>
-            <ShieldCheck className="size-4" /> Verify identity
+            <ShieldCheck className="size-4" /> {t("Verify identity")}
           </Button>
         ) : d.precheckin_verified_by ? (
           <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700">
             <ShieldCheck className="size-3.5" />
-            Verified by {d.precheckin_verified_by.split("@")[0]}
+            {t("Verified by {user}", { user: d.precheckin_verified_by.split("@")[0] })}
           </span>
         ) : undefined
       }
     >
       <dl className="mb-3 grid grid-cols-2 gap-3">
-        <Field label="Pre-check-in" value={d.precheckin_status} />
-        <Field label="ID captured by" value={d.id_document_source} />
+        <Field label={t("Pre-check-in")} value={d.precheckin_status ? t(d.precheckin_status) : d.precheckin_status} />
+        <Field label={t("ID captured by")} value={d.id_document_source ? t(d.id_document_source) : d.id_document_source} />
       </dl>
 
       {img ? (
-        <img src={img} alt="Guest ID document"
+        <img src={img} alt={t("Guest ID document")}
           className="max-h-56 w-auto rounded-lg border border-zinc-200" />
       ) : d.id_document ? (
-        <p className="text-sm text-zinc-400">Loading the document…</p>
+        <p className="text-sm text-zinc-400">{t("Loading the document…")}</p>
       ) : d.id_document_discarded ? (
         <p className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-500">
-          ID document discarded at checkout, per this property's retention policy.
+          {t("ID document discarded at checkout, per this property's retention policy.")}
         </p>
       ) : open ? (
         <div className="space-y-2">
@@ -149,14 +151,14 @@ function IdentityCard({ d, reload }: { d: Detail; reload: () => void }) {
               physical card; check-in works with or without this. */}
           <div className="flex items-start gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
             <TriangleAlert className="mt-px size-3.5 shrink-0" />
-            No ID document on file — capture it at the counter.
+            {t("No ID document on file — capture it at the counter.")}
           </div>
           <IdDocumentField
             method="kamra.api.upload_id_document"
             params={{ reservation: d.name }}
             uploaded={false}
             onUploaded={reload}
-            label="Photograph the guest's ID"
+            label={t("Photograph the guest's ID")}
           />
         </div>
       ) : null}
@@ -187,6 +189,7 @@ export default function ReservationDetail({
   reload: () => void
   onClose: () => void
 }) {
+  const { t } = useT()
   const name = String(row.name)
   const [d, setD] = useState<Detail | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -265,7 +268,7 @@ export default function ReservationDetail({
   if (!d)
     return (
       <p className="py-10 text-center text-sm text-zinc-400">
-        {error ?? "Loading…"}
+        {error ?? t("Loading…")}
       </p>
     )
 
@@ -283,19 +286,19 @@ export default function ReservationDetail({
             (STATUS_TONE[d.status] ?? "bg-zinc-100 text-zinc-700")
           }
         >
-          {d.status}
+          {t(d.status)}
         </span>
         {d.booking_type && d.booking_type !== "Individual" && (
-          <Badge>{d.booking_type}</Badge>
+          <Badge>{t(d.booking_type)}</Badge>
         )}
-        {d.source && <Badge>{d.source}</Badge>}
+        {d.source && <Badge>{t(d.source)}</Badge>}
         {d.channel && <Badge>{d.channel}</Badge>}
         {d.guest?.vip === 1 && (
           <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
             <Star className="size-3" /> VIP
           </span>
         )}
-        {d.guest?.blacklisted === 1 && <Badge tone="rose">Blacklisted</Badge>}
+        {d.guest?.blacklisted === 1 && <Badge tone="rose">{t("Blacklisted")}</Badge>}
       </div>
 
       {error && (
@@ -307,7 +310,7 @@ export default function ReservationDetail({
       {/* money - the question everyone asks first */}
       <Card
         icon={<CreditCard className="size-4" />}
-        title="Billing"
+        title={t("Billing")}
         action={
           d.folio_name ? (
             <Link
@@ -315,26 +318,26 @@ export default function ReservationDetail({
               onClick={onClose}
               className="text-xs font-medium text-brand-700 hover:underline"
             >
-              Open folio →
+              {t("Open folio →")}
             </Link>
           ) : undefined
         }
       >
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <div className="text-xs text-zinc-400">Total</div>
+            <div className="text-xs text-zinc-400">{t("Total")}</div>
             <div className="text-lg font-semibold text-zinc-900">
               {inr(money.total)}
             </div>
           </div>
           <div>
-            <div className="text-xs text-zinc-400">Paid</div>
+            <div className="text-xs text-zinc-400">{t("Paid")}</div>
             <div className="text-lg font-semibold text-emerald-700">
               {inr(money.paid)}
             </div>
           </div>
           <div>
-            <div className="text-xs text-zinc-400">Balance due</div>
+            <div className="text-xs text-zinc-400">{t("Balance due")}</div>
             <div
               className={
                 "text-lg font-semibold " +
@@ -347,20 +350,21 @@ export default function ReservationDetail({
         </div>
         {Number(money.refund_due ?? 0) > 0 && (
           <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-            Refund due: <span className="font-semibold">{inr(money.refund_due ?? 0)}</span>{" "}
-            - the advance taken at booking, with no folio or fee against it.
+            {t("Refund due: {amount} - the advance taken at booking, with no folio or fee against it.", {
+              amount: inr(money.refund_due ?? 0),
+            })}
           </div>
         )}
         <p className="mt-2 text-xs text-zinc-400">
           {money.source === "folio"
-            ? "Live from the guest folio."
+            ? t("Live from the guest folio.")
             : money.source === "none"
-              ? "The booking ended without a stay - nothing is owed."
+              ? t("The booking ended without a stay - nothing is owed.")
               : money.has_folio
-                ? "Booking total; deposits sit on the guest folio and count at check-in."
+                ? t("Booking total; deposits sit on the guest folio and count at check-in.")
                 : money.paid > 0
-                  ? "Advance taken at booking; the rest is due at check-in."
-                  : "No payment yet - take a deposit below to secure the booking."}
+                  ? t("Advance taken at booking; the rest is due at check-in.")
+                  : t("No payment yet - take a deposit below to secure the booking.")}
         </p>
       </Card>
 
@@ -387,10 +391,10 @@ export default function ReservationDetail({
 
       <div className="grid gap-4 sm:grid-cols-2">
         {/* stay + dates (editable) */}
-        <Card icon={<CalendarDays className="size-4" />} title="Stay">
+        <Card icon={<CalendarDays className="size-4" />} title={t("Stay")}>
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="text-xs text-zinc-400">Check-in</span>
+              <span className="text-xs text-zinc-400">{t("Check-in")}</span>
               <input
                 type="date"
                 value={ci}
@@ -407,7 +411,7 @@ export default function ReservationDetail({
               />
             </label>
             <label className="block">
-              <span className="text-xs text-zinc-400">Check-out</span>
+              <span className="text-xs text-zinc-400">{t("Check-out")}</span>
               <input
                 type="date"
                 value={co}
@@ -425,15 +429,17 @@ export default function ReservationDetail({
                 act(() =>
                   amendStayConfirmed(name, ci, co, (p) =>
                     window.confirm(
-                      `New dates re-price this stay: ${inr(p.current_amount)} → ${inr(p.new_amount)}` +
-                        ` (${p.difference >= 0 ? "+" : "−"}${inr(Math.abs(p.difference))}).` +
-                        " Confirm the new price with the guest?",
+                      t("New dates re-price this stay: {from} → {to} ({diff}). Confirm the new price with the guest?", {
+                        from: inr(p.current_amount),
+                        to: inr(p.new_amount),
+                        diff: `${p.difference >= 0 ? "+" : "−"}${inr(Math.abs(p.difference))}`,
+                      }),
                     ),
                   ),
                 )
               }
             >
-              {busy ? "Updating…" : "Update dates & re-price"}
+              {busy ? t("Updating…") : t("Update dates & re-price")}
             </Button>
           )}
           {d.status === "Confirmed" && (
@@ -446,25 +452,27 @@ export default function ReservationDetail({
                 onChange={(e) => act(() => setLateArrival(name, e.target.checked))}
               />
               <span>
-                Late arrival
+                {t("Late arrival")}
                 <span className="block text-xs text-zinc-400">
-                  The night audit holds this arrival as Due In instead of marking a no-show; the next audit decides.
+                  {t("The night audit holds this arrival as Due In instead of marking a no-show; the next audit decides.")}
                 </span>
               </span>
             </label>
           )}
           <dl className="mt-3 grid grid-cols-2 gap-3">
-            <Field label="Nights" value={d.nights} />
+            <Field label={t("Nights")} value={d.nights} />
             <Field
-              label="Guests"
-              value={`${d.adults} adult${d.adults === 1 ? "" : "s"}${
-                d.children ? ` · ${d.children} child` : ""
+              label={t("Guests")}
+              value={`${t(d.adults === 1 ? "{n} adult" : "{n} adults", { n: d.adults })}${
+                d.children
+                  ? ` · ${t(d.children === 1 ? "{n} child" : "{n} children", { n: d.children })}`
+                  : ""
               }`}
             />
-            {d.eta && <Field label="ETA" value={d.eta} />}
+            {d.eta && <Field label={t("ETA")} value={d.eta} />}
             {d.night_rates && d.night_rates.length > 0 && (
               <Field
-                label="Confirmed rate / night"
+                label={t("Confirmed rate / night")}
                 value={
                   new Set(d.night_rates.map((n) => n.rate)).size === 1
                     ? inr(d.night_rates[0].rate)
@@ -475,7 +483,7 @@ export default function ReservationDetail({
               />
             )}
             {d.precheckin_status && d.precheckin_status !== "Not Started" && (
-              <Field label="Pre-check-in" value={d.precheckin_status} />
+              <Field label={t("Pre-check-in")} value={t(d.precheckin_status)} />
             )}
           </dl>
         </Card>
@@ -485,7 +493,7 @@ export default function ReservationDetail({
         {/* room */}
         <Card
           icon={<BedDouble className="size-4" />}
-          title="Room"
+          title={t("Room")}
           action={
             d.status === "Confirmed" || d.status === "Checked In" ? (
               <button
@@ -493,20 +501,20 @@ export default function ReservationDetail({
                 onClick={() => setChangingRoom(true)}
                 className="text-xs font-medium text-brand-700 hover:underline"
               >
-                {d.room ? "Change room" : "Assign room"}
+                {d.room ? t("Change room") : t("Assign room")}
               </button>
             ) : undefined
           }
         >
           <dl className="grid grid-cols-2 gap-3">
-            <Field label="Room type" value={d.room_type_name ?? d.room_type} />
-            <Field label="Room" value={d.room_number ?? d.room ?? "Unassigned"} />
-            {d.meal_plan && <Field label="Meal plan" value={d.meal_plan_name || d.meal_plan} />}
-            {d.rate_plan && <Field label="Rate plan" value={d.rate_plan} />}
+            <Field label={t("Room type")} value={d.room_type_name ?? d.room_type} />
+            <Field label={t("Room")} value={d.room_number ?? d.room ?? t("Unassigned")} />
+            {d.meal_plan && <Field label={t("Meal plan")} value={d.meal_plan_name || d.meal_plan} />}
+            {d.rate_plan && <Field label={t("Rate plan")} value={d.rate_plan} />}
           </dl>
           {!d.room && d.status === "Confirmed" && (
             <p className="mt-2 text-xs text-amber-600">
-              No room assigned yet - use Assign room above before check-in.
+              {t("No room assigned yet - use Assign room above before check-in.")}
             </p>
           )}
         </Card>
@@ -514,7 +522,7 @@ export default function ReservationDetail({
         {/* guest - connected to the journey */}
         <Card
           icon={<User className="size-4" />}
-          title="Guest"
+          title={t("Guest")}
           action={
             d.guest ? (
               <Link
@@ -522,54 +530,54 @@ export default function ReservationDetail({
                 onClick={onClose}
                 className="text-xs font-medium text-brand-700 hover:underline"
               >
-                Guest journey →
+                {t("Guest journey →")}
               </Link>
             ) : undefined
           }
         >
           {d.guest ? (
             <dl className="grid grid-cols-2 gap-3">
-              <Field label="Name" value={d.guest.full_name} />
-              <Field label="Phone" value={d.guest.phone} />
-              {d.guest.email && <Field label="Email" value={d.guest.email} />}
+              <Field label={t("Name")} value={d.guest.full_name} />
+              <Field label={t("Phone")} value={d.guest.phone} />
+              {d.guest.email && <Field label={t("Email")} value={d.guest.email} />}
               <Field
-                label="History"
+                label={t("History")}
                 value={
                   d.guest.stays > 0
-                    ? `${d.guest.stays} stay${d.guest.stays === 1 ? "" : "s"}${
-                        d.guest.last_stay ? ` · last ${d.guest.last_stay}` : ""
+                    ? `${t(d.guest.stays === 1 ? "{n} stay" : "{n} stays", { n: d.guest.stays })}${
+                        d.guest.last_stay ? ` · ${t("last {date}", { date: d.guest.last_stay })}` : ""
                       }`
-                    : "First stay"
+                    : t("First stay")
                 }
               />
             </dl>
           ) : (
-            <p className="text-sm text-zinc-400">No linked guest profile.</p>
+            <p className="text-sm text-zinc-400">{t("No linked guest profile.")}</p>
           )}
         </Card>
 
         {/* booker / company, when someone booked on the guest's behalf */}
         {(d.booker || d.company || d.travel_agent) && (
-          <Card icon={<User className="size-4" />} title="Booked by">
+          <Card icon={<User className="size-4" />} title={t("Booked by")}>
             <dl className="grid grid-cols-2 gap-3">
               {d.booker && (
                 <>
-                  <Field label="Booker" value={d.booker.name} />
-                  <Field label="Phone" value={d.booker.phone} />
+                  <Field label={t("Booker")} value={d.booker.name} />
+                  <Field label={t("Phone")} value={d.booker.phone} />
                   {d.booker.relation && (
-                    <Field label="Relation" value={d.booker.relation} />
+                    <Field label={t("Relation")} value={t(d.booker.relation)} />
                   )}
                   {d.booker.contact_preference && (
                     <Field
-                      label="Send updates to"
-                      value={d.booker.contact_preference}
+                      label={t("Send updates to")}
+                      value={t(d.booker.contact_preference)}
                     />
                   )}
                 </>
               )}
-              {d.company && <Field label="Company" value={d.company} />}
+              {d.company && <Field label={t("Company")} value={d.company} />}
               {d.travel_agent && (
-                <Field label="Travel agent" value={d.travel_agent} />
+                <Field label={t("Travel agent")} value={d.travel_agent} />
               )}
             </dl>
           </Card>
@@ -577,14 +585,14 @@ export default function ReservationDetail({
       </div>
 
       {/* special requests - editable */}
-      <Card icon={<FileText className="size-4" />} title="Special requests">
+      <Card icon={<FileText className="size-4" />} title={t("Special requests")}>
         <textarea
           value={req}
           onChange={(e) => {
             setReq(e.target.value)
             setReqDirty(true)
           }}
-          placeholder="Late check-in, high floor, allergies…"
+          placeholder={t("Late check-in, high floor, allergies…")}
           className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:outline-2 focus:outline-offset-1 focus:outline-brand-600"
           rows={2}
         />
@@ -601,7 +609,7 @@ export default function ReservationDetail({
               )
             }
           >
-            Save note
+            {t("Save note")}
           </Button>
         )}
       </Card>
@@ -610,13 +618,13 @@ export default function ReservationDetail({
       {d.cancellation && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
           <p className="font-semibold">
-            Cancelled - {d.cancellation.number}
+            {t("Cancelled - {number}", { number: d.cancellation.number ?? "" })}
           </p>
           <p className="mt-0.5">
             {d.cancellation.reason}
             {d.cancellation.fee > 0
-              ? ` · fee ${inr(d.cancellation.fee)}`
-              : " · no fee"}
+              ? ` · ${t("fee {amount}", { amount: inr(d.cancellation.fee) })}`
+              : ` · ${t("no fee")}`}
             {d.cancellation.cancelled_on
               ? ` · ${d.cancellation.cancelled_on}`
               : ""}
@@ -626,26 +634,25 @@ export default function ReservationDetail({
             onClick={onClose}
             className="mt-1 inline-block font-medium text-rose-900 underline"
           >
-            Cancellation letter
+            {t("Cancellation letter")}
           </Link>
         </div>
       )}
 
       {d.status === "Requested" && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          <p className="font-semibold">Booking request - waiting for your answer</p>
+          <p className="font-semibold">{t("Booking request - waiting for your answer")}</p>
           <p className="mt-0.5 text-xs">
-            A request holds no room. Accepting checks availability again and
-            takes a room; declining cancels it with no fee and tells the guest.
+            {t("A request holds no room. Accepting checks availability again and takes a room; declining cancels it with no fee and tells the guest.")}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Button disabled={busy} onClick={() => act(() => acceptBookingRequest(name))}>
-              Accept
+              {t("Accept")}
             </Button>
             <input
               value={declineReason}
               onChange={(e) => setDeclineReason(e.target.value)}
-              placeholder="Reason for declining"
+              placeholder={t("Reason for declining")}
               className="min-w-0 flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm focus:outline-2 focus:outline-offset-1 focus:outline-brand-600"
             />
             <Button
@@ -655,7 +662,7 @@ export default function ReservationDetail({
                 act(() => declineBookingRequest(name, declineReason.trim()))
               }
             >
-              Decline
+              {t("Decline")}
             </Button>
           </div>
         </div>
@@ -672,7 +679,7 @@ export default function ReservationDetail({
               })
             }
           >
-            <LogIn className="size-4" /> Promote to a room
+            <LogIn className="size-4" /> {t("Promote to a room")}
           </Button>
         )}
         {/* Adjacent to the button, never wired into it: can_check_in stays
@@ -680,22 +687,22 @@ export default function ReservationDetail({
             not turn a real guest away at the counter. */}
         {d.actions.can_check_in && d.warnings.id_document_missing && (
           <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-800">
-            <TriangleAlert className="size-3.5" /> No ID document on file
+            <TriangleAlert className="size-3.5" /> {t("No ID document on file")}
           </span>
         )}
         {d.actions.can_check_in && (
           <Button disabled={busy} onClick={() => act(() => checkIn(name))}>
-            <LogIn className="size-4" /> Check in
+            <LogIn className="size-4" /> {t("Check in")}
           </Button>
         )}
         {d.actions.can_check_out && d.security_deposit?.blocks_checkout && (
           <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-800">
-            <ShieldCheck className="size-3.5" /> Security deposit still held - withhold or refund it
+            <ShieldCheck className="size-3.5" /> {t("Security deposit still held - withhold or refund it")}
           </span>
         )}
         {d.actions.can_check_out && (
           <Button disabled={busy} onClick={() => act(() => checkOut(name))}>
-            <LogOut className="size-4" /> Check out
+            <LogOut className="size-4" /> {t("Check out")}
           </Button>
         )}
         <Link
@@ -703,7 +710,7 @@ export default function ReservationDetail({
           onClick={onClose}
           className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-600 hover:border-brand-600 hover:text-brand-700"
         >
-          <FileText className="size-4" /> Registration card
+          <FileText className="size-4" /> {t("Registration card")}
         </Link>
       </div>
 

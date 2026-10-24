@@ -63,12 +63,14 @@ import {
 import { Steps, stepsFor, type StepId } from "./banquet/Steps"
 import Economics from "./banquet/Economics"
 import MenuComposer from "./banquet/MenuComposer"
+import { useT } from "../lib/i18n"
 
 
 
 export default function BanquetFunction() {
   const { name = "" } = useParams()
   const navigate = useNavigate()
+  const { t } = useT()
   const [fn, setFn] = useState<FunctionSheet | null>(null)
   const [cat, setCat] = useState<BanquetCatalogue | null>(null)
   const [step, setStep] = useState<StepId>("enquiry")
@@ -102,7 +104,7 @@ export default function BanquetFunction() {
     [load],
   )
 
-  if (!fn) return <Empty>{error ?? "Loading…"}</Empty>
+  if (!fn) return <Empty>{error ?? t("Loading…")}</Empty>
 
   const away = daysAway(fn.event_date)
   const steps = stepsFor(fn)
@@ -111,7 +113,7 @@ export default function BanquetFunction() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <nav aria-label="Breadcrumb" className="mb-1">
+          <nav aria-label={t("Breadcrumb")} className="mb-1">
             <ol className="flex items-center gap-1.5 text-xs text-zinc-400">
               <li>
                 <button
@@ -119,7 +121,7 @@ export default function BanquetFunction() {
                   className="inline-flex items-center gap-1 hover:text-zinc-700"
                 >
                   <ArrowLeft className="size-3.5" />
-                  Banquets
+                  {t("Banquets")}
                 </button>
               </li>
               <li aria-hidden>/</li>
@@ -138,7 +140,7 @@ export default function BanquetFunction() {
             </span>
           </h1>
           <p className="mt-0.5 text-sm text-zinc-500">
-            {fn.event_type}
+            {t(fn.event_type)}
             {fn.event_name ? ` · ${fn.event_name}` : ""} · {fn.venue} ·{" "}
             {fn.event_date}
             {fn.end_date && fn.end_date !== fn.event_date
@@ -150,7 +152,7 @@ export default function BanquetFunction() {
             {away >= 0 && fn.status !== "Completed" && (
               <span className="text-zinc-400">
                 {" "}
-                · in {away} day{away === 1 ? "" : "s"}
+                · {away === 1 ? t("in 1 day") : t("in {n} days", { n: away })}
               </span>
             )}
           </p>
@@ -181,7 +183,11 @@ export default function BanquetFunction() {
         <Money
           label="Received"
           value={fn.advance_received}
-          sub={`${fn.receipts.length} receipt${fn.receipts.length === 1 ? "" : "s"}`}
+          sub={
+            fn.receipts.length === 1
+              ? t("1 receipt")
+              : t("{n} receipts", { n: fn.receipts.length })
+          }
         />
         <Money
           label="Balance"
@@ -195,8 +201,8 @@ export default function BanquetFunction() {
           value={fn.total_cost ? fn.gross_margin : null}
           sub={
             fn.total_cost
-              ? `${fn.margin_percent}% after ${inr(fn.net_cost)} cost`
-              : "nothing costed yet — see Cost & margin"
+              ? t("{pct}% after {amt} cost", { pct: fn.margin_percent, amt: inr(fn.net_cost) })
+              : t("nothing costed yet — see Cost & margin")
           }
           tone={
             !fn.total_cost
@@ -241,10 +247,12 @@ function Money({
   sub?: string
   tone?: string
 }) {
+  // Callers pass English labels; translating here keeps every tile in step.
+  const { t } = useT()
   return (
     <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
       <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">
-        {label}
+        {t(label)}
       </p>
       <p className={"mt-1 text-xl font-semibold tabular-nums " + tone}>
         {value === null ? "—" : inr(value)}
@@ -265,6 +273,7 @@ function StatusActions({
   busy: boolean
   act: Act
 }) {
+  const { t } = useT()
   const [ask, setAsk] = useState<FunctionStatus | null>(null)
   const [reason, setReason] = useState("")
   const [guest, setGuest] = useState(false)
@@ -287,14 +296,18 @@ function StatusActions({
           onClick={() => setGuest(true)}
           title={
             fn.customer_confirm_outcome
-              ? `Guest ${fn.customer_confirm_outcome} via ${fn.customer_confirm_channel} on ${fn.customer_confirmed_on}`
-              : "Record how the guest replied"
+              ? t("Guest {outcome} via {channel} on {date}", {
+                  outcome: t(fn.customer_confirm_outcome),
+                  channel: t(fn.customer_confirm_channel ?? ""),
+                  date: fn.customer_confirmed_on ?? "",
+                })
+              : t("Record how the guest replied")
           }
         >
           <Handshake className="size-4" />
           {fn.customer_confirm_outcome
-            ? `Guest: ${fn.customer_confirm_outcome}`
-            : "Guest response"}
+            ? t("Guest: {outcome}", { outcome: t(fn.customer_confirm_outcome) })
+            : t("Guest response")}
         </Button>
       )}
       {options.map((s) => (
@@ -309,23 +322,23 @@ function StatusActions({
           }
         >
           {s === "Confirmed"
-            ? "Confirm"
+            ? t("Confirm")
             : s === "Completed"
-              ? "Close out"
+              ? t("Close out")
               : s === "Enquiry"
-                ? "Reopen"
-                : s}
+                ? t("Reopen")
+                : t(s)}
         </Button>
       ))}
       {ask && (
         <Sheet
-          title={ask === "Lost" ? "Mark this lost" : "Cancel this function"}
-          description="The reason is what makes the pipeline worth reading later."
+          title={ask === "Lost" ? t("Mark this lost") : t("Cancel this function")}
+          description={t("The reason is what makes the pipeline worth reading later.")}
           onClose={() => setAsk(null)}
           footer={
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setAsk(null)}>
-                Back
+                {t("Back")}
               </Button>
               <Button
                 disabled={busy || !reason.trim()}
@@ -335,7 +348,7 @@ function StatusActions({
                   setReason("")
                 }}
               >
-                {ask === "Lost" ? "Mark lost" : "Cancel it"}
+                {ask === "Lost" ? t("Mark lost") : t("Cancel it")}
               </Button>
             </div>
           }
@@ -344,7 +357,7 @@ function StatusActions({
             <textarea
               rows={4}
               className={inputCls}
-              placeholder="Went to a competitor on price / date moved / event called off…"
+              placeholder={t("Went to a competitor on price / date moved / event called off…")}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
             />
@@ -353,13 +366,13 @@ function StatusActions({
       )}
       {guest && (
         <Sheet
-          title="Guest response"
-          description="They confirmed by phone, email, or WhatsApp — record it here. No guest portal."
+          title={t("Guest response")}
+          description={t("They confirmed by phone, email, or WhatsApp — record it here. No guest portal.")}
           onClose={() => setGuest(false)}
           footer={
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setGuest(false)}>
-                Back
+                {t("Back")}
               </Button>
               <Button
                 disabled={busy}
@@ -376,7 +389,7 @@ function StatusActions({
                   setNotes("")
                 }}
               >
-                Save response
+                {t("Save response")}
               </Button>
             </div>
           }
@@ -404,7 +417,7 @@ function StatusActions({
               <textarea
                 rows={3}
                 className={inputCls}
-                placeholder="Optional — what they said…"
+                placeholder={t("Optional — what they said…")}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
@@ -419,8 +432,7 @@ function StatusActions({
                     onChange={(e) => setAlsoConfirm(e.target.checked)}
                   />
                   <span>
-                    Also move the function to Confirmed (creates department
-                    checklists and notifies Finance, HK, F&amp;B, Sales).
+                    {t("Also move the function to Confirmed (creates department checklists and notifies Finance, HK, F&B, Sales).")}
                   </span>
                 </label>
               )}
@@ -442,6 +454,7 @@ function DetailTab({
   busy: boolean
   act: Act
 }) {
+  const { t } = useT()
   const [draft, setDraft] = useState<Record<string, unknown>>({})
   const [rooms, setRooms] = useState<Row[]>([])
   const dirty = Object.keys(draft).length > 0
@@ -471,7 +484,7 @@ function DetailTab({
             <CardTitle>
               <span className="inline-flex items-center gap-1.5">
                 <CalendarClock className="size-4" />
-                When & how the room is set
+                {t("When & how the room is set")}
               </span>
             </CardTitle>
           </CardHeader>
@@ -479,7 +492,7 @@ function DetailTab({
             <Field label="Event name" className="sm:col-span-2">
               <input
                 className={inputCls}
-                placeholder="Sharma–Verma reception"
+                placeholder={t("Sharma–Verma reception")}
                 value={get("event_name", "")}
                 onChange={(e) => set("event_name", e.target.value)}
               />
@@ -537,7 +550,7 @@ function DetailTab({
               label="To"
               hint={
                 fn.billable_hours
-                  ? `${fn.billable_hours} billable hours`
+                  ? t("{n} billable hours", { n: fn.billable_hours })
                   : undefined
               }
             >
@@ -568,7 +581,7 @@ function DetailTab({
               <textarea
                 rows={2}
                 className={inputCls}
-                placeholder="Stage 20×12 at the north end, dance floor centre, buffet along the east wall…"
+                placeholder={t("Stage 20×12 at the north end, dance floor centre, buffet along the east wall…")}
                 value={get("setup_notes", "")}
                 onChange={(e) => set("setup_notes", e.target.value)}
               />
@@ -581,7 +594,7 @@ function DetailTab({
             <CardTitle>
               <span className="inline-flex items-center gap-1.5">
                 <Users className="size-4" />
-                Pax & the customer
+                {t("Pax & the customer")}
               </span>
             </CardTitle>
           </CardHeader>
@@ -615,7 +628,7 @@ function DetailTab({
                 onChange={(e) => set("pax_actual", Number(e.target.value) || 0)}
               />
             </Field>
-            <Field label="Billing on" hint={`${fn.billable_pax} pax`}>
+            <Field label="Billing on" hint={t("{n} pax", { n: fn.billable_pax })}>
               <Select
                 value={get("rate_basis", "Per Pax")}
                 onChange={(v) => set("rate_basis", v)}
@@ -678,7 +691,7 @@ function DetailTab({
 
         <Card>
           <CardHeader>
-            <CardTitle>Billing & {taxLabel()}</CardTitle>
+            <CardTitle>{t("Billing & {tax}", { tax: taxLabel() })}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
             <Field
@@ -691,7 +704,7 @@ function DetailTab({
                 onChange={(e) => set("billing_name", e.target.value)}
               />
             </Field>
-            <Field label={`${taxLabel()} number`}>
+            <Field label={t("{tax} number", { tax: taxLabel() })}>
               <input
                 className={inputCls}
                 placeholder="29AABCU9603R1ZM"
@@ -705,7 +718,7 @@ function DetailTab({
             >
               <input
                 className={inputCls}
-                placeholder="Karnataka"
+                placeholder={t("Karnataka")}
                 value={get("place_of_supply", "")}
                 onChange={(e) => set("place_of_supply", e.target.value)}
               />
@@ -730,14 +743,14 @@ function DetailTab({
             </Field>
             {fn.group_detail && (
               <p className="sm:col-span-2 text-xs text-zinc-500">
-                Tied to group{" "}
+                {t("Tied to group")}{" "}
                 <Link
                   className="font-medium text-brand-700 hover:underline"
                   to="/groups"
                 >
                   {fn.group_detail.group_name}
                 </Link>{" "}
-                - the bill can ride its master folio.
+                {t("- the bill can ride its master folio.")}
               </p>
             )}
           </CardContent>
@@ -747,7 +760,7 @@ function DetailTab({
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Notes</CardTitle>
+            <CardTitle>{t("Notes")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 lg:grid-cols-3">
             <Field label="What they asked for" hint="In the customer's words">
@@ -784,18 +797,19 @@ function DetailTab({
       {dirty && (
         <div className="sticky bottom-4 flex items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3">
           <span className="text-sm text-brand-900">
-            {Object.keys(draft).length} unsaved change
-            {Object.keys(draft).length === 1 ? "" : "s"}
+            {Object.keys(draft).length === 1
+              ? t("1 unsaved change")
+              : t("{n} unsaved changes", { n: Object.keys(draft).length })}
           </span>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setDraft({})}>
-              Discard
+              {t("Discard")}
             </Button>
             <Button
               disabled={busy}
               onClick={() => act(() => banquet.update(fn.name, draft))}
             >
-              Save
+              {t("Save")}
             </Button>
           </div>
         </div>
@@ -815,6 +829,7 @@ function GreenRoomCard({
   busy: boolean
   act: Act
 }) {
+  const { t } = useT()
   const [room, setRoom] = useState(fn.green_room ?? "")
   const [comp, setComp] = useState(Boolean(fn.green_room_complimentary))
   const [rate, setRate] = useState("")
@@ -829,15 +844,13 @@ function GreenRoomCard({
         <CardTitle>
           <span className="inline-flex items-center gap-1.5">
             <Gift className="size-4" />
-            Green room
+            {t("Green room")}
           </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-xs text-zinc-400">
-          The changing room for the wedding party. Assigning one puts a room
-          block on it, so it genuinely leaves the sellable inventory rather
-          than living on a note.
+          {t("The changing room for the wedding party. Assigning one puts a room block on it, so it genuinely leaves the sellable inventory rather than living on a note.")}
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Room">
@@ -846,7 +859,7 @@ function GreenRoomCard({
               value={room}
               onChange={(e) => setRoom(e.target.value)}
             >
-              <option value="">None held</option>
+              <option value="">{t("None held")}</option>
               {rooms.map((r) => (
                 <option key={r.name} value={r.name}>
                   {String(r.room_number)} · {String(r.room_type ?? "")}
@@ -860,8 +873,8 @@ function GreenRoomCard({
               value={comp ? "comp" : "charge"}
               onChange={(e) => setComp(e.target.value === "comp")}
             >
-              <option value="comp">Complimentary (house use)</option>
-              <option value="charge">Charged as accommodation</option>
+              <option value="comp">{t("Complimentary (house use)")}</option>
+              <option value="charge">{t("Charged as accommodation")}</option>
             </select>
           </Field>
           {!comp && (
@@ -878,10 +891,10 @@ function GreenRoomCard({
         <div className="flex items-center justify-between">
           {fn.green_room_block ? (
             <span className="text-xs text-emerald-700">
-              Held out of sale ({fn.green_room_block})
+              {t("Held out of sale ({block})", { block: fn.green_room_block })}
             </span>
           ) : (
-            <span className="text-xs text-zinc-400">Nothing held</span>
+            <span className="text-xs text-zinc-400">{t("Nothing held")}</span>
           )}
           <Button
             variant="outline"
@@ -896,7 +909,7 @@ function GreenRoomCard({
               )
             }
           >
-            {room ? "Hold it" : "Release"}
+            {room ? t("Hold it") : t("Release")}
           </Button>
         </div>
       </CardContent>
@@ -917,6 +930,7 @@ function ItemsTab({
   busy: boolean
   act: Act
 }) {
+  const { t } = useT()
   const [lines, setLines] = useState<FunctionItem[]>(fn.items)
   const [picker, setPicker] = useState<"menu" | "service" | null>(null)
   const [composing, setComposing] = useState<string | null>(null)
@@ -948,15 +962,15 @@ function ItemsTab({
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>What they're buying</CardTitle>
+          <CardTitle>{t("What they're buying")}</CardTitle>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setPicker("menu")}>
               <Plus className="size-4" />
-              Menu
+              {t("Menu")}
             </Button>
             <Button variant="outline" onClick={() => setPicker("service")}>
               <Plus className="size-4" />
-              Service
+              {t("Service")}
             </Button>
             <Button
               variant="outline"
@@ -989,31 +1003,31 @@ function ItemsTab({
               }
             >
               <Plus className="size-4" />
-              Blank line
+              {t("Blank line")}
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           {lines.length === 0 ? (
             <Empty>
-              Nothing on the quote yet - add the menu and the extras.
+              {t("Nothing on the quote yet - add the menu and the extras.")}
             </Empty>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-zinc-200 text-left text-[11px] uppercase tracking-wider text-zinc-400">
-                    <th className="w-36 py-2 pr-2 font-medium">Type</th>
-                    <th className="min-w-56 py-2 pr-2 font-medium">Item</th>
-                    <th className="w-20 py-2 pr-2 text-right font-medium">Qty</th>
-                    <th className="w-24 py-2 pr-2 font-medium">Per</th>
-                    <th className="w-24 py-2 pr-2 text-right font-medium">Rack</th>
-                    <th className="w-28 py-2 pr-2 text-right font-medium">Agreed</th>
-                    <th className="w-16 py-2 pr-2 text-center font-medium">Charge</th>
+                    <th className="w-36 py-2 pr-2 font-medium">{t("Type")}</th>
+                    <th className="min-w-56 py-2 pr-2 font-medium">{t("Item")}</th>
+                    <th className="w-20 py-2 pr-2 text-right font-medium">{t("Qty")}</th>
+                    <th className="w-24 py-2 pr-2 font-medium">{t("Per")}</th>
+                    <th className="w-24 py-2 pr-2 text-right font-medium">{t("Rack")}</th>
+                    <th className="w-28 py-2 pr-2 text-right font-medium">{t("Agreed")}</th>
+                    <th className="w-16 py-2 pr-2 text-center font-medium">{t("Charge")}</th>
                     <th className="w-20 py-2 pr-2 text-right font-medium">
                       {taxLabel()} %
                     </th>
-                    <th className="w-28 py-2 pr-2 text-right font-medium">Amount</th>
+                    <th className="w-28 py-2 pr-2 text-right font-medium">{t("Amount")}</th>
                     <th className="w-8 py-2" />
                   </tr>
                 </thead>
@@ -1034,8 +1048,8 @@ function ItemsTab({
                             edit(i, { item_type: e.target.value })
                           }
                         >
-                          {ITEM_TYPES.map((t) => (
-                            <option key={t}>{t}</option>
+                          {ITEM_TYPES.map((x) => (
+                            <option key={x} value={x}>{t(x)}</option>
                           ))}
                         </select>
                       </td>
@@ -1043,7 +1057,7 @@ function ItemsTab({
                         <input
                           className={inputCls + " !py-1"}
                           value={l.item_name}
-                          placeholder="What is it?"
+                          placeholder={t("What is it?")}
                           onChange={(e) =>
                             edit(i, { item_name: e.target.value })
                           }
@@ -1056,8 +1070,8 @@ function ItemsTab({
                             {fn.selections?.some(
                               (x) => x.banquet_menu === l.banquet_menu,
                             )
-                              ? "menu chosen · edit dishes"
-                              : "choose the dishes →"}
+                              ? t("menu chosen · edit dishes")
+                              : t("choose the dishes →")}
                           </button>
                         )}
                       </td>
@@ -1078,7 +1092,7 @@ function ItemsTab({
                           onChange={(e) => edit(i, { uom: e.target.value })}
                         >
                           {UOMS.map((u) => (
-                            <option key={u}>{u}</option>
+                            <option key={u} value={u}>{t(u)}</option>
                           ))}
                         </select>
                       </td>
@@ -1102,8 +1116,8 @@ function ItemsTab({
                           checked={Boolean(l.chargeable)}
                           title={
                             l.chargeable
-                              ? "Billed"
-                              : "Complimentary - still on the event order and pack list"
+                              ? t("Billed")
+                              : t("Complimentary - still on the event order and pack list")
                           }
                           onChange={(e) =>
                             edit(i, { chargeable: e.target.checked ? 1 : 0 })
@@ -1117,8 +1131,8 @@ function ItemsTab({
                             className={inputCls + " !py-1 text-right"}
                             title={
                               l.tax_exempt
-                                ? "Zero-rated on purpose"
-                                : `0 marks the line exempt; blank re-derives the rate for a ${l.item_type} line`
+                                ? t("Zero-rated on purpose")
+                                : t("0 marks the line exempt; blank re-derives the rate for a {type} line", { type: t(l.item_type) })
                             }
                             value={l.tax_exempt ? 0 : l.gst_rate || ""}
                             // 0 is a deliberate exemption, not a blank - without
@@ -1141,7 +1155,7 @@ function ItemsTab({
                           inr(l.net_amount || l.amount)
                         ) : (
                           <span className="text-zinc-400">
-                            {inr(l.qty * l.rate)} free
+                            {t("{amt} free", { amt: inr(l.qty * l.rate) })}
                           </span>
                         )}
                       </td>
@@ -1151,7 +1165,7 @@ function ItemsTab({
                           onClick={() =>
                             setLines((ls) => ls.filter((_, x) => x !== i))
                           }
-                          aria-label="Remove line"
+                          aria-label={t("Remove line")}
                         >
                           <Trash2 className="size-4" />
                         </button>
@@ -1185,8 +1199,7 @@ function ItemsTab({
                 />
               </Field>
               <p className="max-w-64 pb-2 text-xs text-zinc-400">
-                The discount spreads pro-rata across the lines, so each keeps
-                its own {taxLabel()} rate.
+                {t("The discount spreads pro-rata across the lines, so each keeps its own {tax} rate.", { tax: taxLabel() })}
               </p>
             </div>
             <div className="min-w-56 space-y-1 text-sm">
@@ -1200,7 +1213,7 @@ function ItemsTab({
               )}
               {fn.service_charge > 0 && (
                 <Row
-                  label={`Service charge ${fn.service_charge_percent}%`}
+                  label={t("Service charge {pct}%", { pct: fn.service_charge_percent })}
                   value={inr(fn.service_charge)}
                 />
               )}
@@ -1238,7 +1251,7 @@ function ItemsTab({
                   setServiceCharge(String(fn.service_charge_percent || ""))
                 }}
               >
-                Discard
+                {t("Discard")}
               </Button>
               <Button
                 disabled={busy}
@@ -1260,7 +1273,7 @@ function ItemsTab({
                   })
                 }
               >
-                Save &amp; reprice
+                {t("Save & reprice")}
               </Button>
             </div>
           )}
@@ -1308,9 +1321,11 @@ function Row({
   value: string
   tone?: string
 }) {
+  // Callers pass English labels, like Field; translated once, here.
+  const { t } = useT()
   return (
     <div className={"flex justify-between gap-6 " + tone}>
-      <span className="text-zinc-500">{label}</span>
+      <span className="text-zinc-500">{t(label)}</span>
       <span className="tabular-nums">{value}</span>
     </div>
   )
@@ -1327,6 +1342,7 @@ function CataloguePicker({
   onClose: () => void
   onPick: (id: string, chargeable: number) => void
 }) {
+  const { t } = useT()
   const [q, setQ] = useState("")
   const list =
     kind === "menu"
@@ -1341,24 +1357,24 @@ function CataloguePicker({
 
   return (
     <Sheet
-      title={kind === "menu" ? "Add a menu package" : "Add a service"}
+      title={kind === "menu" ? t("Add a menu package") : t("Add a service")}
       description={
         kind === "menu"
-          ? "Priced per plate. The quantity follows the guaranteed pax."
-          : "Projectors, LED walls, DJ, podium, stage, decor, bar. Add it free to give it away."
+          ? t("Priced per plate. The quantity follows the guaranteed pax.")
+          : t("Projectors, LED walls, DJ, podium, stage, decor, bar. Add it free to give it away.")
       }
       onClose={onClose}
       wide
     >
       <input
         className={inputCls + " mb-3"}
-        placeholder="Search…"
+        placeholder={t("Search…")}
         value={q}
         onChange={(e) => setQ(e.target.value)}
       />
       {list.length === 0 ? (
         <Empty>
-          Nothing in the catalogue yet - build it under Banquet Catalogue.
+          {t("Nothing in the catalogue yet - build it under Banquet Catalogue.")}
         </Empty>
       ) : (
         <ul className="space-y-2">
@@ -1377,10 +1393,10 @@ function CataloguePicker({
                     </p>
                     <p className="text-xs text-zinc-400">
                       {isMenu
-                        ? `${item.meal_period} · ${item.food_type} · ${item.service_style}` +
-                          (item.min_pax ? ` · min ${item.min_pax} pax` : "")
-                        : `${item.category} · ${item.uom}` +
-                          (item.chargeable ? "" : " · normally free")}
+                        ? `${t(item.meal_period)} · ${t(item.food_type)} · ${t(item.service_style)}` +
+                          (item.min_pax ? ` · ${t("min {n} pax", { n: item.min_pax })}` : "")
+                        : `${t(item.category)} · ${t(item.uom)}` +
+                          (item.chargeable ? "" : ` · ${t("normally free")}`)}
                     </p>
                     {isMenu && item.courses.length > 0 && (
                       <p className="mt-1 line-clamp-2 text-xs text-zinc-500">
@@ -1397,15 +1413,15 @@ function CataloguePicker({
                         className="!px-2 !py-1 !text-xs"
                         onClick={() => onPick(item.name, 1)}
                       >
-                        Add
+                        {t("Add")}
                       </Button>
                       <Button
                         variant="outline"
                         className="!px-2 !py-1 !text-xs"
                         onClick={() => onPick(item.name, 0)}
-                        title="Goes on the event order and pack list, not the quote"
+                        title={t("Goes on the event order and pack list, not the quote")}
                       >
-                        Free
+                        {t("Free")}
                       </Button>
                     </div>
                   </div>
@@ -1428,6 +1444,7 @@ function OpenItemsCard({
   busy: boolean
   act: Act
 }) {
+  const { t } = useT()
   const [rows, setRows] = useState<Partial<OpenItem>[]>(fn.open_items)
   useEffect(() => setRows(fn.open_items), [fn])
   const dirty = JSON.stringify(rows) !== JSON.stringify(fn.open_items)
@@ -1440,7 +1457,7 @@ function OpenItemsCard({
         <CardTitle>
           <span className="inline-flex items-center gap-1.5">
             <Handshake className="size-4" />
-            Open items
+            {t("Open items")}
           </span>
         </CardTitle>
         <Button
@@ -1458,16 +1475,15 @@ function OpenItemsCard({
           }
         >
           <Plus className="size-4" />
-          Add
+          {t("Add")}
         </Button>
       </CardHeader>
       <CardContent>
         <p className="mb-3 text-xs text-zinc-400">
-          What's still unsettled while the price is being agreed - and what
-          agreeing it would do to the quote.
+          {t("What's still unsettled while the price is being agreed - and what agreeing it would do to the quote.")}
         </p>
         {rows.length === 0 ? (
-          <Empty>Nothing outstanding.</Empty>
+          <Empty>{t("Nothing outstanding.")}</Empty>
         ) : (
           <div className="space-y-2">
             {rows.map((r, i) => (
@@ -1477,7 +1493,7 @@ function OpenItemsCard({
               >
                 <input
                   className={inputCls}
-                  placeholder="Sangeet stage - who pays?"
+                  placeholder={t("Sangeet stage - who pays?")}
                   value={r.title ?? ""}
                   onChange={(e) => edit(i, { title: e.target.value })}
                 />
@@ -1488,8 +1504,8 @@ function OpenItemsCard({
                     edit(i, { owner_side: e.target.value as "Hotel" | "Client" })
                   }
                 >
-                  <option>Hotel</option>
-                  <option>Client</option>
+                  <option value="Hotel">{t("Hotel")}</option>
+                  <option value="Client">{t("Client")}</option>
                 </select>
                 <input
                   type="date"
@@ -1500,7 +1516,7 @@ function OpenItemsCard({
                 <input
                   type="number"
                   className={inputCls + " sm:!w-28 text-right"}
-                  placeholder="Impact"
+                  placeholder={t("Impact")}
                   value={r.price_impact ?? 0}
                   onChange={(e) =>
                     edit(i, { price_impact: Number(e.target.value) })
@@ -1515,9 +1531,9 @@ function OpenItemsCard({
                     })
                   }
                 >
-                  <option>Open</option>
-                  <option>Agreed</option>
-                  <option>Dropped</option>
+                  <option value="Open">{t("Open")}</option>
+                  <option value="Agreed">{t("Agreed")}</option>
+                  <option value="Dropped">{t("Dropped")}</option>
                 </select>
               </div>
             ))}
@@ -1526,7 +1542,7 @@ function OpenItemsCard({
         {dirty && (
           <div className="mt-3 flex justify-end gap-2">
             <Button variant="outline" onClick={() => setRows(fn.open_items)}>
-              Discard
+              {t("Discard")}
             </Button>
             <Button
               disabled={busy}
@@ -1539,7 +1555,7 @@ function OpenItemsCard({
                 )
               }
             >
-              Save
+              {t("Save")}
             </Button>
           </div>
         )}
@@ -1549,11 +1565,12 @@ function OpenItemsCard({
 }
 
 function RevisionsCard({ fn }: { fn: FunctionSheet }) {
+  const { t } = useT()
   if (fn.revisions.length === 0) return null
   return (
     <Card>
       <CardHeader>
-        <CardTitle>How the price moved</CardTitle>
+        <CardTitle>{t("How the price moved")}</CardTitle>
       </CardHeader>
       <CardContent>
         <ol className="space-y-2">
@@ -1566,7 +1583,7 @@ function RevisionsCard({ fn }: { fn: FunctionSheet }) {
                 <p className="text-zinc-700">{r.change_note}</p>
                 <p className="text-xs text-zinc-400">
                   {String(r.revised_on).slice(0, 16)} · {r.revised_by} ·{" "}
-                  {r.pax} pax
+                  {t("{n} pax", { n: r.pax })}
                 </p>
               </div>
               <span className="shrink-0 tabular-nums">{inr(r.grand_total)}</span>
@@ -1589,6 +1606,7 @@ function MoneyTab({
   busy: boolean
   act: Act
 }) {
+  const { t } = useT()
   const [terms, setTerms] = useState<Partial<PaymentTerm>[]>(fn.payment_terms)
   const [note, setNote] = useState(fn.payment_terms_note ?? "")
   const [receipt, setReceipt] = useState<{
@@ -1615,14 +1633,14 @@ function MoneyTab({
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Payment terms</CardTitle>
+          <CardTitle>{t("Payment terms")}</CardTitle>
           <div className="flex gap-2">
             <Button
               variant="outline"
               disabled={busy}
               onClick={() => act(() => banquet.defaultPaymentTerms(fn.name))}
             >
-              Use the usual schedule
+              {t("Use the usual schedule")}
             </Button>
             <Button
               variant="outline"
@@ -1634,33 +1652,32 @@ function MoneyTab({
               }
             >
               <Plus className="size-4" />
-              Add
+              {t("Add")}
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           {terms.length === 0 ? (
             <Empty>
-              No schedule yet - the usual one is an advance, a call before the
-              date, and the rest on completion.
+              {t("No schedule yet - the usual one is an advance, a call before the date, and the rest on completion.")}
             </Empty>
           ) : (
             <div className="space-y-2">
-              {terms.map((t, i) => (
+              {terms.map((term, i) => (
                 <div
                   key={i}
                   className="grid gap-2 rounded-lg border border-zinc-200 px-3 py-2 sm:grid-cols-[1fr_auto_auto_auto_auto]"
                 >
                   <input
                     className={inputCls}
-                    placeholder="Booking advance"
-                    value={t.milestone ?? ""}
+                    placeholder={t("Booking advance")}
+                    value={term.milestone ?? ""}
                     onChange={(e) => edit(i, { milestone: e.target.value })}
                   />
                   <input
                     type="date"
                     className={inputCls + " sm:!w-36"}
-                    value={t.due_date ?? ""}
+                    value={term.due_date ?? ""}
                     onChange={(e) =>
                       edit(i, { due_date: e.target.value || null })
                     }
@@ -1669,7 +1686,7 @@ function MoneyTab({
                     type="number"
                     className={inputCls + " sm:!w-20 text-right"}
                     placeholder="%"
-                    value={t.percent ?? ""}
+                    value={term.percent ?? ""}
                     onChange={(e) =>
                       edit(i, { percent: Number(e.target.value), amount: 0 })
                     }
@@ -1677,35 +1694,37 @@ function MoneyTab({
                   <input
                     type="number"
                     className={inputCls + " sm:!w-32 text-right"}
-                    placeholder="Amount"
-                    value={t.amount ?? ""}
+                    placeholder={t("Amount")}
+                    value={term.amount ?? ""}
                     onChange={(e) => edit(i, { amount: Number(e.target.value) })}
                   />
                   <select
                     className={
                       inputCls +
                       " sm:!w-28 " +
-                      (t.status === "Overdue" ? "!text-rose-700" : "")
+                      (term.status === "Overdue" ? "!text-rose-700" : "")
                     }
-                    value={t.status ?? "Pending"}
+                    value={term.status ?? "Pending"}
                     onChange={(e) =>
                       edit(i, { status: e.target.value as PaymentTerm["status"] })
                     }
                   >
-                    <option>Pending</option>
-                    <option>Overdue</option>
-                    <option>Received</option>
-                    <option>Waived</option>
+                    <option value="Pending">{t("Pending")}</option>
+                    <option value="Overdue">{t("Overdue")}</option>
+                    <option value="Received">{t("Received")}</option>
+                    <option value="Waived">{t("Waived")}</option>
                   </select>
                 </div>
               ))}
               <p className="pt-1 text-xs text-zinc-400">
-                Scheduled {inr(scheduled)} of {inr(fn.grand_total)}
+                {t("Scheduled {amt} of {total}", { amt: inr(scheduled), total: inr(fn.grand_total) })}
                 {Math.abs(scheduled - fn.grand_total) > 1 && (
                   <span className="text-amber-700">
                     {" "}
-                    · {inr(Math.abs(scheduled - fn.grand_total))}{" "}
-                    {scheduled > fn.grand_total ? "over" : "unscheduled"}
+                    ·{" "}
+                    {scheduled > fn.grand_total
+                      ? t("{amt} over", { amt: inr(Math.abs(scheduled - fn.grand_total)) })
+                      : t("{amt} unscheduled", { amt: inr(Math.abs(scheduled - fn.grand_total)) })}
                   </span>
                 )}
               </p>
@@ -1732,7 +1751,7 @@ function MoneyTab({
                   setNote(fn.payment_terms_note ?? "")
                 }}
               >
-                Discard
+                {t("Discard")}
               </Button>
               <Button
                 disabled={busy}
@@ -1746,7 +1765,7 @@ function MoneyTab({
                   )
                 }
               >
-                Save terms
+                {t("Save terms")}
               </Button>
             </div>
           )}
@@ -1758,7 +1777,7 @@ function MoneyTab({
           <CardTitle>
             <span className="inline-flex items-center gap-1.5">
               <Receipt className="size-4" />
-              Receipts
+              {t("Receipts")}
             </span>
           </CardTitle>
           <Button
@@ -1773,12 +1792,12 @@ function MoneyTab({
             }
           >
             <Plus className="size-4" />
-            Record money in
+            {t("Record money in")}
           </Button>
         </CardHeader>
         <CardContent>
           {fn.receipts.length === 0 ? (
-            <Empty>Nothing received yet.</Empty>
+            <Empty>{t("Nothing received yet.")}</Empty>
           ) : (
             <table className="w-full text-sm">
               <tbody>
@@ -1788,14 +1807,14 @@ function MoneyTab({
                       {r.receipt_date}
                     </td>
                     <td className="py-2">
-                      {r.kind}
+                      {t(r.kind)}
                       {r.kind === "Security Deposit" && (
                         <span className="ml-1.5 rounded bg-violet-50 px-1.5 py-0.5 text-[10px] font-medium text-violet-700">
-                          held
+                          {t("held")}
                         </span>
                       )}
                     </td>
-                    <td className="py-2 text-zinc-500">{r.mode}</td>
+                    <td className="py-2 text-zinc-500">{t(r.mode)}</td>
                     <td className="py-2 text-zinc-400">{r.reference}</td>
                     <td
                       className={
@@ -1810,8 +1829,8 @@ function MoneyTab({
                       {/* every advance a banquet office takes needs a piece
                           of paper against it */}
                       <button
-                        title="Print this receipt"
-                        aria-label="Print this receipt"
+                        title={t("Print this receipt")}
+                        aria-label={t("Print this receipt")}
                         className="text-zinc-300 opacity-0 transition-opacity hover:text-brand-700 group-hover:opacity-100"
                         onClick={() => setReceiptDoc(r.name)}
                       >
@@ -1839,14 +1858,14 @@ function MoneyTab({
           <CardTitle>
             <span className="inline-flex items-center gap-1.5">
               <BadgeIndianRupee className="size-4" />
-              Settlement
+              {t("Settlement")}
             </span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {fn.posted_to_folio ? (
             <p className="text-sm text-emerald-700">
-              Billed to folio{" "}
+              {t("Billed to folio")}{" "}
               <Link
                 className="font-medium hover:underline"
                 to={`/billing/${encodeURIComponent(fn.folio ?? "")}`}
@@ -1859,14 +1878,14 @@ function MoneyTab({
             <>
               <p className="text-sm text-zinc-500">
                 {fn.group_detail
-                  ? `Posts to ${fn.group_detail.group_name}'s master folio - one bill for the rooms and the function.`
-                  : "Tie this function to a group booking to bill it onto the group's master folio."}
+                  ? t("Posts to {group}'s master folio - one bill for the rooms and the function.", { group: fn.group_detail.group_name })
+                  : t("Tie this function to a group booking to bill it onto the group's master folio.")}
               </p>
               <Button
                 disabled={busy || !fn.group_booking || fn.status === "Enquiry"}
                 onClick={() => act(() => banquet.postToFolio(fn.name))}
               >
-                Post to the bill
+                {t("Post to the bill")}
               </Button>
             </>
           )}
@@ -1883,12 +1902,12 @@ function MoneyTab({
 
       {receipt && (
         <Sheet
-          title="Record money in"
+          title={t("Record money in")}
           onClose={() => setReceipt(null)}
           footer={
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setReceipt(null)}>
-                Cancel
+                {t("Cancel")}
               </Button>
               <Button
                 disabled={busy || !Number(receipt.amount)}
@@ -1905,7 +1924,7 @@ function MoneyTab({
                   setReceipt(null)
                 }}
               >
-                Record it
+                {t("Record it")}
               </Button>
             </div>
           }
@@ -1955,12 +1974,12 @@ function MoneyTab({
                     setReceipt({ ...receipt, settle_term: e.target.value })
                   }
                 >
-                  <option value="">None</option>
+                  <option value="">{t("None")}</option>
                   {fn.payment_terms
-                    .filter((t) => t.status !== "Received")
-                    .map((t) => (
-                      <option key={t.name} value={t.name}>
-                        {t.milestone} · {inr(t.amount)}
+                    .filter((x) => x.status !== "Received")
+                    .map((x) => (
+                      <option key={x.name} value={x.name}>
+                        {x.milestone} · {inr(x.amount)}
                       </option>
                     ))}
                 </select>
@@ -1991,6 +2010,7 @@ function CloseOutCard({
   act: Act
   onCount?: () => void
 }) {
+  const { t } = useT()
   const [open, setOpen] = useState(false)
   const [pax, setPax] = useState(String(fn.pax_actual || fn.pax_guaranteed || ""))
   const [damage, setDamage] = useState("")
@@ -2008,17 +2028,17 @@ function CloseOutCard({
         <CardTitle>
           <span className="inline-flex items-center gap-1.5">
             <ShieldCheck className="size-4" />
-            Deposit &amp; close-out
+            {t("Deposit & close-out")}
           </span>
         </CardTitle>
         <div className="flex gap-2">
           {onCount && (
             <Button variant="outline" onClick={onCount}>
-              Count what was served
+              {t("Count what was served")}
             </Button>
           )}
           {!done && fn.status === "Confirmed" && (
-            <Button onClick={() => setOpen(true)}>Close out the function</Button>
+            <Button onClick={() => setOpen(true)}>{t("Close out the function")}</Button>
           )}
         </div>
       </CardHeader>
@@ -2039,27 +2059,31 @@ function CloseOutCard({
         </div>
         {done ? (
           <p className="text-sm text-emerald-700">
-            Closed out {String(fn.closed_out_on).slice(0, 16).replace("T", " ")}
-            {fn.closed_out_by ? ` by ${fn.closed_out_by}` : ""}.
+            {fn.closed_out_by
+              ? t("Closed out {when} by {who}.", {
+                  when: String(fn.closed_out_on).slice(0, 16).replace("T", " "),
+                  who: fn.closed_out_by,
+                })
+              : t("Closed out {when}.", {
+                  when: String(fn.closed_out_on).slice(0, 16).replace("T", " "),
+                })}
           </p>
         ) : (
           <p className="text-xs text-zinc-400">
-            A security deposit is held money, not payment — it never nets
-            against the bill. Record it as a Security Deposit receipt, then
-            close out to return what's left after damages.
+            {t("A security deposit is held money, not payment — it never nets against the bill. Record it as a Security Deposit receipt, then close out to return what's left after damages.")}
           </p>
         )}
       </CardContent>
 
       {open && (
         <Sheet
-          title="Close out the function"
-          description="Walk the room, count the covers, note the damage. One motion."
+          title={t("Close out the function")}
+          description={t("Walk the room, count the covers, note the damage. One motion.")}
           onClose={() => setOpen(false)}
           footer={
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setOpen(false)}>
-                Not yet
+                {t("Not yet")}
               </Button>
               <Button
                 disabled={busy || (!!Number(damage) && !note.trim())}
@@ -2076,7 +2100,7 @@ function CloseOutCard({
                   setOpen(false)
                 }}
               >
-                Close it out
+                {t("Close it out")}
               </Button>
             </div>
           }
@@ -2084,7 +2108,7 @@ function CloseOutCard({
           <div className="space-y-4">
             <Field
               label="Covers actually served"
-              hint={`Guaranteed ${fn.pax_guaranteed || 0}. The bill uses whichever is higher.`}
+              hint={t("Guaranteed {n}. The bill uses whichever is higher.", { n: fn.pax_guaranteed || 0 })}
             >
               <input
                 type="number"
@@ -2095,7 +2119,7 @@ function CloseOutCard({
             </Field>
 
             <div className="rounded-xl border border-zinc-200 p-3">
-              <p className="mb-2 text-sm font-medium">Anything broken?</p>
+              <p className="mb-2 text-sm font-medium">{t("Anything broken?")}</p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <Field label="Deduct from the deposit">
                   <input
@@ -2119,7 +2143,7 @@ function CloseOutCard({
                   <textarea
                     rows={2}
                     className={inputCls}
-                    placeholder="Two chairs and a table lamp in the pre-function area"
+                    placeholder={t("Two chairs and a table lamp in the pre-function area")}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                   />
@@ -2136,10 +2160,10 @@ function CloseOutCard({
               />
               <span>
                 <span className="block text-sm font-medium text-zinc-700">
-                  Return the deposit balance now
+                  {t("Return the deposit balance now")}
                 </span>
                 <span className="block text-xs text-zinc-400">
-                  Recorded as a refund on the function's ledger.
+                  {t("Recorded as a refund on the function's ledger.")}
                 </span>
               </span>
             </label>
@@ -2160,9 +2184,7 @@ function CloseOutCard({
               />
               {!!Number(damage) && (
                 <p className="pt-2 text-xs text-zinc-500">
-                  The {inr(Number(damage))} deducted goes on the bill as a
-                  damage-recovery line — it's the hotel's money now, not a
-                  deposit.
+                  {t("The {amt} deducted goes on the bill as a damage-recovery line — it's the hotel's money now, not a deposit.", { amt: inr(Number(damage)) })}
                 </p>
               )}
             </div>
@@ -2184,6 +2206,8 @@ function PaperTab({
   busy: boolean
   act: Act
 }) {
+  const { t } = useT()
+  // Built at render, so these t() calls follow the current language.
   const docs: {
     kind: string
     title: string
@@ -2193,38 +2217,38 @@ function PaperTab({
   }[] = [
     {
       kind: "quote",
-      title: "Quotation",
-      blurb: "What it costs, line by line, with the terms.",
+      title: t("Quotation"),
+      blurb: t("What it costs, line by line, with the terms."),
       ready: fn.items.length > 0,
-      why: "Put some lines on it first.",
+      why: t("Put some lines on it first."),
     },
     {
       kind: "contract",
-      title: "Contract",
-      blurb: "The quote, the schedule, the policy and the signature blocks.",
+      title: t("Contract"),
+      blurb: t("The quote, the schedule, the policy and the signature blocks."),
       ready: fn.items.length > 0,
-      why: "Put some lines on it first.",
+      why: t("Put some lines on it first."),
     },
     {
       kind: "beo",
-      title: "Event order (BEO)",
-      blurb: "The running sheet the banquet, kitchen and AV teams work from.",
+      title: t("Event order (BEO)"),
+      blurb: t("The running sheet the banquet, kitchen and AV teams work from."),
       ready: fn.status === "Confirmed" || fn.status === "Completed",
-      why: "Only a confirmed function gets an event order.",
+      why: t("Only a confirmed function gets an event order."),
     },
     {
       kind: "pack_list",
-      title: "Pack list",
-      blurb: "What physically has to reach the hall, and by when.",
+      title: t("Pack list"),
+      blurb: t("What physically has to reach the hall, and by when."),
       ready: fn.items.some((i) => i.on_pack_list),
-      why: "No line is marked as something to carry yet.",
+      why: t("No line is marked as something to carry yet."),
     },
     {
       kind: "invoice",
-      title: "Invoice",
-      blurb: "The bill against what's already been received.",
+      title: t("Invoice"),
+      blurb: t("The bill against what's already been received."),
       ready: fn.status === "Confirmed" || fn.status === "Completed",
-      why: "Confirm the function first.",
+      why: t("Confirm the function first."),
     },
   ]
 
@@ -2244,7 +2268,7 @@ function PaperTab({
                   to={`/banquet/${encodeURIComponent(fn.name)}/${d.kind}`}
                   className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
                 >
-                  Open
+                  {t("Open")}
                 </Link>
               ) : (
                 <p className="mt-2 text-xs text-amber-700">{d.why}</p>
@@ -2256,14 +2280,14 @@ function PaperTab({
 
       <Card>
         <CardHeader>
-          <CardTitle>Issue</CardTitle>
+          <CardTitle>{t("Issue")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap items-center gap-3">
           <Button
             disabled={busy || fn.items.length === 0}
             onClick={() => act(() => banquet.generateQuote(fn.name))}
           >
-            Stamp quote v{(fn.quote_version || 0) + 1}
+            {t("Stamp quote v{n}", { n: (fn.quote_version || 0) + 1 })}
           </Button>
           <Button
             variant="outline"
@@ -2274,15 +2298,15 @@ function PaperTab({
             }
             title={
               !(fn.customer_email || "").trim()
-                ? "Add a customer email on the Enquiry step first"
-                : "Email the stamped quotation to the guest"
+                ? t("Add a customer email on the Enquiry step first")
+                : t("Email the stamped quotation to the guest")
             }
             onClick={() =>
               act(() => banquet.sendQuotation(fn.name, ["email"]))
             }
           >
             <Mail className="size-4" />
-            Email to guest
+            {t("Email to guest")}
           </Button>
           <Button
             variant="outline"
@@ -2293,37 +2317,50 @@ function PaperTab({
             }
             title={
               !(fn.customer_phone || "").trim()
-                ? "Add a customer phone on the Enquiry step first"
-                : "WhatsApp the quotation summary to the guest"
+                ? t("Add a customer phone on the Enquiry step first")
+                : t("WhatsApp the quotation summary to the guest")
             }
             onClick={() =>
               act(() => banquet.sendQuotation(fn.name, ["whatsapp"]))
             }
           >
-            WhatsApp guest
+            {t("WhatsApp guest")}
           </Button>
           <Button
             variant="outline"
             disabled={busy || (fn.status !== "Confirmed" && fn.status !== "Completed")}
             onClick={() => act(() => banquet.generateBeo(fn.name))}
           >
-            {fn.beo_number ? "Reissue event order" : "Issue event order"}
+            {fn.beo_number ? t("Reissue event order") : t("Issue event order")}
           </Button>
           <div className="basis-full text-xs text-zinc-400">
-            {fn.quote_sent_on
-              ? `Quote v${fn.quote_version} issued ${fn.quote_sent_on}${
-                  fn.quote_valid_till ? `, valid till ${fn.quote_valid_till}` : ""
-                }.`
-              : "No quote issued yet."}
-            {fn.quote_emailed_on
-              ? ` Sent to guest ${String(fn.quote_emailed_on).slice(0, 16)}.`
-              : fn.quote_version > 0
-                ? " Not emailed yet."
-                : ""}
-            {fn.customer_confirm_outcome
-              ? ` Guest ${fn.customer_confirm_outcome.toLowerCase()} via ${fn.customer_confirm_channel} on ${fn.customer_confirmed_on}.`
-              : ""}
-            {fn.beo_number && ` Event order ${fn.beo_number}.`}
+            {/* One sentence per fact, each its own key, joined by spaces. */}
+            {[
+              fn.quote_sent_on
+                ? fn.quote_valid_till
+                  ? t("Quote v{n} issued {date}, valid till {till}.", {
+                      n: fn.quote_version,
+                      date: fn.quote_sent_on,
+                      till: fn.quote_valid_till,
+                    })
+                  : t("Quote v{n} issued {date}.", { n: fn.quote_version, date: fn.quote_sent_on })
+                : t("No quote issued yet."),
+              fn.quote_emailed_on
+                ? t("Sent to guest {when}.", { when: String(fn.quote_emailed_on).slice(0, 16) })
+                : fn.quote_version > 0
+                  ? t("Not emailed yet.")
+                  : "",
+              fn.customer_confirm_outcome
+                ? t("Guest {outcome} via {channel} on {date}.", {
+                    outcome: t(fn.customer_confirm_outcome).toLowerCase(),
+                    channel: t(fn.customer_confirm_channel ?? ""),
+                    date: fn.customer_confirmed_on ?? "",
+                  })
+                : "",
+              fn.beo_number ? t("Event order {n}.", { n: fn.beo_number }) : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
           </div>
         </CardContent>
       </Card>
@@ -2360,6 +2397,7 @@ function ChecklistPanel({
     }[]
   } | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const { t } = useT()
 
   const load = useCallback(() => {
     banquet
@@ -2379,14 +2417,13 @@ function ChecklistPanel({
           <CardTitle>
             <span className="inline-flex items-center gap-1.5">
               <CheckSquare className="size-4" />
-              Department checklist
+              {t("Department checklist")}
             </span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-zinc-500">
-            No checklist tasks yet. Confirming a function creates Sales,
-            Finance, Housekeeping and F&amp;B tasks from property templates.
+            {t("No checklist tasks yet. Confirming a function creates Sales, Finance, Housekeeping and F&B tasks from property templates.")}
           </p>
         </CardContent>
       </Card>
@@ -2399,9 +2436,9 @@ function ChecklistPanel({
         <CardTitle>
           <span className="inline-flex items-center gap-1.5">
             <CheckSquare className="size-4" />
-            Department checklist
+            {t("Department checklist")}
             <span className="ml-2 font-mono text-xs font-normal text-zinc-400">
-              {board.done}/{board.total} done · {board.open} open
+              {t("{done}/{total} done · {open} open", { done: board.done, total: board.total, open: board.open })}
             </span>
           </span>
         </CardTitle>
@@ -2410,12 +2447,12 @@ function ChecklistPanel({
         {board.departments.map((dept) => (
           <div key={dept.department}>
             <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-zinc-400">
-              {dept.department}
+              {t(dept.department)}
             </p>
             <ul className="space-y-1.5">
-              {dept.tasks.map((t) => (
+              {dept.tasks.map((task) => (
                 <li
-                  key={t.name}
+                  key={task.name}
                   className="flex flex-wrap items-center gap-2 rounded-lg border border-zinc-100 px-3 py-2"
                 >
                   <button
@@ -2423,18 +2460,18 @@ function ChecklistPanel({
                     disabled={busy}
                     className={
                       "flex size-5 shrink-0 items-center justify-center rounded border text-xs " +
-                      (t.status === "Done"
+                      (task.status === "Done"
                         ? "border-emerald-600 bg-emerald-600 text-white"
                         : "border-zinc-300 bg-white text-transparent hover:border-brand-500")
                     }
                     aria-label={
-                      t.status === "Done" ? "Mark open" : "Mark done"
+                      task.status === "Done" ? t("Mark open") : t("Mark done")
                     }
                     onClick={() =>
                       act(async () => {
                         await banquet.completeFunctionTask(
-                          t.name,
-                          t.status !== "Done",
+                          task.name,
+                          task.status !== "Done",
                         )
                         load()
                       })
@@ -2445,16 +2482,16 @@ function ChecklistPanel({
                   <span
                     className={
                       "min-w-0 flex-1 text-sm " +
-                      (t.status === "Done"
+                      (task.status === "Done"
                         ? "text-zinc-400 line-through"
                         : "text-zinc-800")
                     }
                   >
-                    {t.title}
+                    {task.title}
                   </span>
-                  {t.due_date && (
+                  {task.due_date && (
                     <span className="text-xs text-zinc-400">
-                      due {t.due_date}
+                      {t("due {date}", { date: task.due_date })}
                     </span>
                   )}
                 </li>
@@ -2481,6 +2518,7 @@ function ReceiptPrint({
   receipt: string
   onClose: () => void
 }) {
+  const { t } = useT()
   const [doc, setDoc] = useState<ReceiptDocument | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -2493,25 +2531,25 @@ function ReceiptPrint({
 
   return (
     <Sheet
-      title="Receipt"
-      description="Print it, or send the PDF straight from the print dialog."
+      title={t("Receipt")}
+      description={t("Print it, or send the PDF straight from the print dialog.")}
       onClose={onClose}
       wide
       footer={
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
-            Close
+            {t("Close")}
           </Button>
           <Button disabled={!doc} onClick={() => window.print()}>
             <Printer className="size-4" />
-            Print
+            {t("Print")}
           </Button>
         </div>
       }
     >
       <ErrorNote error={error} />
       {!doc ? (
-        <Empty>Loading…</Empty>
+        <Empty>{t("Loading…")}</Empty>
       ) : (
         <article className="mx-auto max-w-xl rounded-xl border border-zinc-200 px-8 py-6 text-sm print:border-0">
           <header className="border-b border-zinc-200 pb-3 text-center">
@@ -2548,7 +2586,7 @@ function ReceiptPrint({
               .filter(([, v]) => v && v.trim() && v.trim() !== "·")
               .map(([k, v]) => (
                 <div key={k} className="flex gap-2">
-                  <dt className="w-28 shrink-0 text-zinc-400">{k}</dt>
+                  <dt className="w-28 shrink-0 text-zinc-400">{t(k)}</dt>
                   <dd className="font-medium">{v}</dd>
                 </div>
               ))}
@@ -2558,7 +2596,7 @@ function ReceiptPrint({
             <div className="flex items-baseline justify-between">
               <div>
                 <p className="text-xs uppercase tracking-wider text-zinc-400">
-                  {doc.receipt.kind} · {doc.receipt.mode}
+                  {t(doc.receipt.kind)} · {t(doc.receipt.mode)}
                 </p>
                 {doc.receipt.reference && (
                   <p className="text-xs text-zinc-500">
@@ -2594,12 +2632,12 @@ function ReceiptPrint({
           <div className="mt-10 grid grid-cols-2 gap-12">
             <div className="text-center">
               <div className="h-10 border-b border-zinc-400" />
-              <p className="mt-1 text-[11px] text-zinc-400">Customer</p>
+              <p className="mt-1 text-[11px] text-zinc-400">{t("Customer")}</p>
             </div>
             <div className="text-center">
               <div className="h-10 border-b border-zinc-400" />
               <p className="mt-1 text-[11px] text-zinc-400">
-                For {doc.property.property_name}
+                {t("For {property}", { property: doc.property.property_name ?? "" })}
               </p>
             </div>
           </div>
@@ -2618,6 +2656,7 @@ function RunLine({
   value: number
   bold?: boolean
 }) {
+  const { t } = useT()
   return (
     <div
       className={
@@ -2625,7 +2664,7 @@ function RunLine({
         (bold ? "border-t border-zinc-200 pt-1 font-semibold" : "text-zinc-500")
       }
     >
-      <dt>{label}</dt>
+      <dt>{t(label)}</dt>
       <dd className="tabular-nums">{inr(value)}</dd>
     </div>
   )

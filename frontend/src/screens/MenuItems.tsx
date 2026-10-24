@@ -3,6 +3,7 @@ import { Upload, CookingPot } from "lucide-react"
 import { ResourceScreen } from "../components/ResourceScreen"
 import { Button } from "../components/ui/button"
 import { useAuth } from "../lib/auth"
+import { useT } from "../lib/i18n"
 import { menuItemsConfig } from "./configs"
 import MenuImport from "./MenuImport"
 import RecipeManager from "./RecipeManager"
@@ -20,6 +21,7 @@ const MENU_WRITE_ROLES = [
 
 export default function MenuItems() {
   const { roles } = useAuth()
+  const { t } = useT()
   const canImport = roles.some((r) => MENU_WRITE_ROLES.includes(r))
   const [importing, setImporting] = useState(false)
   const [recipes, setRecipes] = useState(false)
@@ -40,11 +42,11 @@ export default function MenuItems() {
                   support, so this opens its own editor. */}
               <Button variant="outline" onClick={() => setRecipes(true)}>
                 <CookingPot className="mr-1 size-4" aria-hidden />
-                Recipes
+                {t("Recipes")}
               </Button>
               <Button variant="outline" onClick={() => setImporting(true)}>
                 <Upload className="mr-1 size-4" aria-hidden />
-                Bulk upload
+                {t("Bulk upload")}
               </Button>
             </>
           ) : undefined

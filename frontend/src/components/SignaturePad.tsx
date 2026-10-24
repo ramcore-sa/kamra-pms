@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react"
+import { useT } from "../lib/i18n"
 
 /** A small draw-with-finger/mouse signature box. Emits a PNG data URL on each
  *  stroke end; empty until the guest draws something. */
 export function SignaturePad({ onChange }: { onChange: (dataUrl: string) => void }) {
+  const { t } = useT()
   const ref = useRef<HTMLCanvasElement>(null)
   const drawing = useRef(false)
   const drawn = useRef(false)
@@ -72,7 +74,7 @@ export function SignaturePad({ onChange }: { onChange: (dataUrl: string) => void
         />
         {empty && (
           <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-zinc-300">
-            Sign here
+            {t("Sign here")}
           </span>
         )}
       </div>
@@ -81,7 +83,7 @@ export function SignaturePad({ onChange }: { onChange: (dataUrl: string) => void
         onClick={clear}
         className="mt-1 text-xs font-medium text-zinc-400 hover:text-zinc-600"
       >
-        Clear
+        {t("Clear")}
       </button>
     </div>
   )

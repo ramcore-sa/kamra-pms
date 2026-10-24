@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from "react"
 import { Camera, X } from "lucide-react"
 import { call } from "../lib/api"
 import { serverError, type Row } from "../lib/resource"
+import { useT } from "../lib/i18n"
 
 const isVideo = (url: string) => /\.(mp4|mov|webm|m4v|3gp|avi)$/i.test(url)
 
@@ -22,8 +23,10 @@ export function HkMediaView({
   onDelete?: (url: string) => void
   empty?: string
 }) {
+  const { t } = useT()
   const [lightbox, setLightbox] = useState<string | null>(null)
-  if (!urls.length) return <p className="text-sm text-zinc-400">{empty}</p>
+  // Callers pass the English empty text; translated here so every caller gets it.
+  if (!urls.length) return <p className="text-sm text-zinc-400">{t(empty)}</p>
   return (
     <>
       <div className="flex flex-wrap gap-2">
@@ -37,13 +40,13 @@ export function HkMediaView({
               {isVideo(url) ? (
                 <video src={url} muted className="size-20 bg-zinc-100 object-cover" />
               ) : (
-                <img src={url} alt="Room clean" className="size-20 object-cover" />
+                <img src={url} alt={t("Room clean")} className="size-20 object-cover" />
               )}
             </button>
             {onDelete && (
               <button
                 type="button"
-                aria-label="Remove"
+                aria-label={t("Remove")}
                 onClick={() => onDelete(url)}
                 className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-rose-600 text-white shadow active:bg-rose-700"
               >
@@ -60,7 +63,7 @@ export function HkMediaView({
         >
           <button
             type="button"
-            aria-label="Close"
+            aria-label={t("Close")}
             className="absolute right-4 top-4 text-white"
             onClick={() => setLightbox(null)}
           >
@@ -77,7 +80,7 @@ export function HkMediaView({
           ) : (
             <img
               src={lightbox}
-              alt="Room clean"
+              alt={t("Room clean")}
               className="max-h-[85vh] max-w-full rounded-lg"
               onClick={(e) => e.stopPropagation()}
             />
@@ -91,6 +94,7 @@ export function HkMediaView({
 /** Desktop Housekeeping screen — `extra` panel shown when a supervisor opens a
  *  task. Lists that task's proof photos/videos, with delete. */
 export function HkTaskMediaPanel({ row }: { row: Row; reload: () => void }) {
+  const { t } = useT()
   const [urls, setUrls] = useState<string[] | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const loadMedia = useCallback(() => {
@@ -101,7 +105,7 @@ export function HkTaskMediaPanel({ row }: { row: Row; reload: () => void }) {
   useEffect(loadMedia, [loadMedia])
 
   async function del(url: string) {
-    if (!confirm("Remove this photo/video?")) return
+    if (!confirm(t("Remove this photo/video?"))) return
     try {
       await call("kamra.api.hk_delete_media", { task: row.name, file_url: url })
       loadMedia()
@@ -112,10 +116,10 @@ export function HkTaskMediaPanel({ row }: { row: Row; reload: () => void }) {
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-zinc-700">Cleaning photos &amp; videos</h3>
+      <h3 className="text-sm font-semibold text-zinc-700">{t("Cleaning photos & videos")}</h3>
       {err && <p className="text-sm text-rose-600">{err}</p>}
       {urls === null ? (
-        <p className="text-sm text-zinc-400">Loading…</p>
+        <p className="text-sm text-zinc-400">{t("Loading…")}</p>
       ) : (
         <HkMediaView
           urls={urls}
@@ -131,6 +135,7 @@ export function HkTaskMediaPanel({ row }: { row: Row; reload: () => void }) {
  *  room's recent cleaning media and opens the viewer, so reception can confirm
  *  the room is genuinely guest-ready. */
 export function RoomMediaButton({ room }: { room: string }) {
+  const { t } = useT()
   const [open, setOpen] = useState(false)
   const [urls, setUrls] = useState<string[] | null>(null)
 
@@ -150,7 +155,7 @@ export function RoomMediaButton({ room }: { room: string }) {
     <>
       <button
         type="button"
-        aria-label="Cleaning photos"
+        aria-label={t("Cleaning photos")}
         onClick={show}
         className="absolute bottom-1 right-1 rounded-full bg-white/80 p-1 text-zinc-600 shadow-sm hover:text-brand-700"
       >
@@ -170,11 +175,11 @@ export function RoomMediaButton({ room }: { room: string }) {
           >
             <div className="mb-2 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-zinc-700">
-                Cleaning proof — room {room.split("-").pop()}
+                {t("Cleaning proof — room {room}", { room: room.split("-").pop() ?? room })}
               </h3>
               <button
                 type="button"
-                aria-label="Close"
+                aria-label={t("Close")}
                 onClick={() => setOpen(false)}
                 className="text-zinc-400 hover:text-zinc-700"
               >
@@ -182,7 +187,7 @@ export function RoomMediaButton({ room }: { room: string }) {
               </button>
             </div>
             {urls === null ? (
-              <p className="text-sm text-zinc-400">Loading…</p>
+              <p className="text-sm text-zinc-400">{t("Loading…")}</p>
             ) : (
               <HkMediaView
                 urls={urls}

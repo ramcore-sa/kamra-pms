@@ -25,6 +25,7 @@ import {
 } from "../lib/api"
 import { cn } from "../lib/utils"
 import { Markdown } from "../lib/markdown"
+import { t, useT } from "../lib/i18n"
 
 const TOOL_LABEL: Record<string, string> = {
   availability: "Checked availability",
@@ -42,8 +43,10 @@ const TOOL_LABEL: Record<string, string> = {
   waitlist_ready: "Checked waitlist openings",
   promote_waitlist: "Promoted from waitlist",
 }
-const toolLabel = (t: string) =>
-  TOOL_LABEL[t] ?? t.replace(/_/g, " ")
+// Translated when shown (a known tool's label), so a language switch reaches
+// actions already on screen; an unknown tool name is shown as the server sent it.
+const toolLabel = (tool: string) =>
+  TOOL_LABEL[tool] ? t(TOOL_LABEL[tool]) : tool.replace(/_/g, " ")
 
 const SUGGESTIONS = [
   "What does today look like - arrivals, departures, occupancy?",
@@ -53,9 +56,10 @@ const SUGGESTIONS = [
 ]
 
 function ThinkingDots() {
+  const { t } = useT()
   return (
     <span className="inline-flex items-center gap-1.5 text-sm text-zinc-500">
-      Thinking
+      {t("Thinking")}
       <span className="inline-flex gap-0.5">
         <span className="size-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:0ms]" />
         <span className="size-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:150ms]" />
@@ -72,16 +76,17 @@ const SETUP_STEPS = [
 ]
 
 function AiSetupNotice() {
+  const { t } = useT()
   return (
     <div className="mx-auto max-w-md text-center">
       <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-brand-50 ring-1 ring-brand-100">
         <KeyRound className="size-5 text-brand-600" aria-hidden />
       </span>
       <h2 className="mt-4 text-lg font-semibold tracking-tight text-zinc-900">
-        Add an AI key to start
+        {t("Add an AI key to start")}
       </h2>
       <p className="mt-1 text-sm text-zinc-500">
-        Kamra Agent runs on your own AI account. It takes about two minutes.
+        {t("Kamra Agent runs on your own AI account. It takes about two minutes.")}
       </p>
       <ol className="mt-5 space-y-2.5 text-left">
         {SETUP_STEPS.map((step, i) => (
@@ -92,7 +97,7 @@ function AiSetupNotice() {
             <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-brand-600 text-[11px] font-semibold text-white">
               {i + 1}
             </span>
-            {step}
+            {t(step)}
           </li>
         ))}
       </ol>
@@ -100,18 +105,18 @@ function AiSetupNotice() {
         to="/settings/ai"
         className="mt-5 inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
       >
-        Open AI settings
+        {t("Open AI settings")}
         <ArrowRight className="size-4" aria-hidden />
       </Link>
       <p className="mt-4 text-xs text-zinc-400">
-        The key stays on your server, stored masked. Usage is billed to your
-        own provider account.
+        {t("The key stays on your server, stored masked. Usage is billed to your own provider account.")}
       </p>
     </div>
   )
 }
 
 export default function Assistant() {
+  const { t } = useT()
   const [convos, setConvos] = useState<ConversationSummary[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
   const [msgs, setMsgs] = useState<ChatMsg[]>([])
@@ -150,7 +155,7 @@ export default function Assistant() {
       setActiveId(c.name)
       setMsgs(c.messages)
     } catch {
-      setError("Couldn't open that conversation.")
+      setError(t("Couldn't open that conversation."))
     }
   }
 
@@ -251,7 +256,7 @@ export default function Assistant() {
       )
       if (isFirst) refreshList()
     } catch {
-      setError("The agent couldn't finish - check the AI key in Settings.")
+      setError(t("The agent couldn't finish - check the AI key in Settings."))
       if (!content) setMsgs((ms) => ms.filter((_, i) => i !== aIdx))
     } finally {
       setBusy(false)
@@ -269,7 +274,7 @@ export default function Assistant() {
             disabled={busy}
             className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
           >
-            <Plus className="size-4" /> New chat
+            <Plus className="size-4" /> {t("New chat")}
           </button>
         </div>
         <div className="flex-1 space-y-0.5 overflow-y-auto p-2">
@@ -277,7 +282,7 @@ export default function Assistant() {
             <div className="flex flex-col items-center gap-2 px-3 py-10 text-center">
               <MessageSquare className="size-5 text-zinc-300" aria-hidden />
               <p className="text-xs text-zinc-400">
-                Your chats will show up here.
+                {t("Your chats will show up here.")}
               </p>
             </div>
           )}
@@ -292,10 +297,10 @@ export default function Assistant() {
                   : "text-zinc-600 hover:bg-zinc-50",
               )}
             >
-              <span className="flex-1 truncate">{c.title || "Untitled"}</span>
+              <span className="flex-1 truncate">{c.title || t("Untitled")}</span>
               <button
                 onClick={(e) => removeConvo(c.name, e)}
-                aria-label="Delete conversation"
+                aria-label={t("Delete conversation")}
                 className="opacity-0 group-hover:opacity-100"
               >
                 <Trash2 className="size-3.5 text-zinc-400 hover:text-rose-500" />
@@ -316,9 +321,9 @@ export default function Assistant() {
             aria-hidden
           />
           <span className="truncate">
-            {aiEnabled === false ? "Not set up" : "Acting as you"} ·{" "}
+            {aiEnabled === false ? t("Not set up") : t("Acting as you")} ·{" "}
             <span className="font-medium text-zinc-700">
-              {getCurrentProperty()?.split("-")[0] ?? "your hotel"}
+              {getCurrentProperty()?.split("-")[0] ?? t("your hotel")}
             </span>
           </span>
         </div>
@@ -333,21 +338,20 @@ export default function Assistant() {
             <div className="mx-auto max-w-xl space-y-3 py-8 text-center">
               <Sparkles className="mx-auto size-8 text-brand-500" />
               <h2 className="text-lg font-semibold">
-                Your AI, acting as you
+                {t("Your AI, acting as you")}
               </h2>
               <p className="text-sm text-zinc-500">
-                It can look things up and act - quote and book stays, check
-                guests in and out, post charges and payments, work the waitlist,
-                and read the day's numbers.
+                {t("It can look things up and act - quote and book stays, check guests in and out, post charges and payments, work the waitlist, and read the day's numbers.")}
               </p>
               <div className="grid gap-2 pt-2 sm:grid-cols-2">
                 {SUGGESTIONS.map((s) => (
                   <button
                     key={s}
-                    onClick={() => send(s)}
+                    // Sent in the reader's language: the agent answers in kind.
+                    onClick={() => send(t(s))}
                     className="rounded-lg border border-zinc-200 px-3 py-2 text-left text-sm text-zinc-600 hover:border-brand-400 hover:bg-zinc-50"
                   >
-                    {s}
+                    {t(s)}
                   </button>
                 ))}
               </div>
@@ -426,8 +430,8 @@ export default function Assistant() {
               className="flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-zinc-400 disabled:cursor-not-allowed"
               placeholder={
                 aiEnabled === false
-                  ? "Add an AI key in Settings to start chatting"
-                  : "Ask anything about the hotel…"
+                  ? t("Add an AI key in Settings to start chatting")
+                  : t("Ask anything about the hotel…")
               }
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -435,7 +439,7 @@ export default function Assistant() {
             />
             <button
               type="submit"
-              aria-label="Send"
+              aria-label={t("Send")}
               disabled={busy || aiEnabled === false || !input.trim()}
               className="flex size-9 items-center justify-center rounded-full bg-brand-600 text-white transition hover:bg-brand-700 disabled:opacity-40"
             >

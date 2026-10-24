@@ -120,8 +120,8 @@ function ReservationList(props: {
                 : t("Unassigned")}{" "}
               · {t("{n} night{s}", { n: row.nights, s: row.nights === 1 ? "" : "s" })} ·{" "}
               {t("{n} ad", { n: row.adults })}
-              {row.children ? ` + ${row.children} ch` : ""}
-              {row.eta && ` · ETA ${row.eta}`}
+              {row.children ? " + " + t("{n} ch", { n: row.children }) : ""}
+              {row.eta && " · " + t("ETA {eta}", { eta: row.eta })}
               {row.booked_by_name && (
                 <span
                   title={
@@ -129,7 +129,7 @@ function ReservationList(props: {
                       ? `${row.booked_by_phone} · `
                       : "") +
                     t("send links & updates to: {pref}", {
-                      pref: row.contact_preference ?? "Booker",
+                      pref: t(row.contact_preference ?? "Booker"),
                     })
                   }
                 >

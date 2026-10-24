@@ -29,6 +29,7 @@ import { Button } from "../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Sheet } from "../components/ui/sheet"
 import { taxLabel } from "../lib/money"
+import { useT } from "../lib/i18n"
 import {
   CATALOGUE_UOMS,
   Empty,
@@ -55,6 +56,7 @@ const EDIT_ROLES = [
 type Tab = "menus" | "services" | "dishes"
 
 export default function BanquetCatalogue() {
+  const { t } = useT()
   const { roles } = useAuth()
   const canEdit = roles.some((r) => EDIT_ROLES.includes(r))
   const [cat, setCat] = useState<Cat | null>(null)
@@ -110,9 +112,9 @@ export default function BanquetCatalogue() {
     <Card>
       <CardHeader>
         <div>
-          <CardTitle>Banquet catalogue</CardTitle>
+          <CardTitle>{t("Banquet catalogue")}</CardTitle>
           <p className="mt-0.5 text-xs text-zinc-400">
-            The menus and services every quote is built from.
+            {t("The menus and services every quote is built from.")}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
@@ -120,7 +122,7 @@ export default function BanquetCatalogue() {
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-zinc-400" />
             <input
               className={inputCls + " !w-44 pl-8"}
-              placeholder="Search…"
+              placeholder={t("Search…")}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -162,10 +164,10 @@ export default function BanquetCatalogue() {
             >
               <Plus className="size-4" />
               {tab === "menus"
-                ? "New menu"
+                ? t("New menu")
                 : tab === "dishes"
-                  ? "New dish"
-                  : "New service"}
+                  ? t("New dish")
+                  : t("New service")}
             </Button>
           )}
         </div>
@@ -175,9 +177,9 @@ export default function BanquetCatalogue() {
         <div className="mb-4 flex gap-1 border-b border-zinc-200">
           {(
             [
-              ["menus", `Menus (${cat?.menus.length ?? 0})`, UtensilsCrossed],
-              ["services", `Services (${cat?.services.length ?? 0})`, Wrench],
-              ["dishes", `Dishes (${dishes?.length ?? 0})`, ChefHat],
+              ["menus", t("Menus ({n})", { n: cat?.menus.length ?? 0 }), UtensilsCrossed],
+              ["services", t("Services ({n})", { n: cat?.services.length ?? 0 }), Wrench],
+              ["dishes", t("Dishes ({n})", { n: dishes?.length ?? 0 }), ChefHat],
             ] as [Tab, string, typeof Wrench][]
           ).map(([id, label, Icon]) => (
             <button
@@ -211,8 +213,8 @@ export default function BanquetCatalogue() {
           (menus.length === 0 ? (
             <Empty>
               {cat === null
-                ? "Loading…"
-                : "No menu packages yet - add the ones you actually sell."}
+                ? t("Loading…")
+                : t("No menu packages yet - add the ones you actually sell.")}
             </Empty>
           ) : (
             <ul className="grid gap-3 lg:grid-cols-2">
@@ -232,15 +234,15 @@ export default function BanquetCatalogue() {
                         )}
                       </p>
                       <p className="text-xs text-zinc-400">
-                        {m.meal_period} · {m.food_type} · {m.service_style}
+                        {t(m.meal_period)} · {t(m.food_type)} · {t(m.service_style)}
                         {m.cuisine ? ` · ${m.cuisine}` : ""}
-                        {m.min_pax ? ` · min ${m.min_pax} pax` : ""}
+                        {m.min_pax ? ` · ${t("min {n} pax", { n: m.min_pax })}` : ""}
                       </p>
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="tabular-nums">
                         {inr(m.rate_per_pax)}
-                        <span className="text-xs text-zinc-400">/pax</span>
+                        <span className="text-xs text-zinc-400">{t("/pax")}</span>
                       </p>
                       <p className="text-xs text-zinc-400">
                         {taxLabel()} {m.gst_rate}%
@@ -266,7 +268,7 @@ export default function BanquetCatalogue() {
                         className="!px-2 !py-1 !text-xs"
                         onClick={() => setMenuDraft(m)}
                       >
-                        Edit
+                        {t("Edit")}
                       </Button>
                       <Button
                         variant="ghost"
@@ -287,21 +289,21 @@ export default function BanquetCatalogue() {
           (services.length === 0 ? (
             <Empty>
               {cat === null
-                ? "Loading…"
-                : "Nothing here yet - projectors, LED walls, DJ, podium, stage, decor, bar."}
+                ? t("Loading…")
+                : t("Nothing here yet - projectors, LED walls, DJ, podium, stage, decor, bar.")}
             </Empty>
           ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-zinc-200 text-left text-xs uppercase tracking-wider text-zinc-400">
-                  <th className="py-2 pr-3 font-medium">Item</th>
-                  <th className="py-2 pr-3 font-medium">Category</th>
-                  <th className="py-2 pr-3 font-medium">Charged</th>
-                  <th className="py-2 pr-3 text-right font-medium">Rate</th>
+                  <th className="py-2 pr-3 font-medium">{t("Item")}</th>
+                  <th className="py-2 pr-3 font-medium">{t("Category")}</th>
+                  <th className="py-2 pr-3 font-medium">{t("Charged")}</th>
+                  <th className="py-2 pr-3 text-right font-medium">{t("Rate")}</th>
                   <th className="py-2 pr-3 text-right font-medium">
                     {taxLabel()}
                   </th>
-                  <th className="py-2 pr-3 font-medium">By default</th>
+                  <th className="py-2 pr-3 font-medium">{t("By default")}</th>
                   {canEdit && <th className="py-2 w-24" />}
                 </tr>
               </thead>
@@ -314,8 +316,8 @@ export default function BanquetCatalogue() {
                         <p className="text-xs text-zinc-400">{s.description}</p>
                       )}
                     </td>
-                    <td className="py-2 pr-3 text-zinc-500">{s.category}</td>
-                    <td className="py-2 pr-3 text-zinc-500">{s.uom}</td>
+                    <td className="py-2 pr-3 text-zinc-500">{t(s.category)}</td>
+                    <td className="py-2 pr-3 text-zinc-500">{t(s.uom)}</td>
                     <td className="py-2 pr-3 text-right tabular-nums">
                       {inr(s.rate)}
                     </td>
@@ -328,13 +330,13 @@ export default function BanquetCatalogue() {
                           s.chargeable ? "text-zinc-500" : "text-emerald-700"
                         }
                       >
-                        {s.chargeable ? "Chargeable" : "Complimentary"}
+                        {s.chargeable ? t("Chargeable") : t("Complimentary")}
                       </span>
                       {s.is_alcohol ? (
-                        <span className="ml-1.5 text-amber-700">alcohol</span>
+                        <span className="ml-1.5 text-amber-700">{t("alcohol")}</span>
                       ) : null}
                       {s.on_pack_list ? (
-                        <span className="ml-1.5 text-zinc-400">packed</span>
+                        <span className="ml-1.5 text-zinc-400">{t("packed")}</span>
                       ) : null}
                     </td>
                     {canEdit && (
@@ -345,7 +347,7 @@ export default function BanquetCatalogue() {
                             className="!px-2 !py-1 !text-xs"
                             onClick={() => setSvcDraft(s)}
                           >
-                            Edit
+                            {t("Edit")}
                           </Button>
                           <Button
                             variant="ghost"
@@ -417,6 +419,7 @@ function MenuSheet({
   onClose: () => void
   onSave: (payload: Record<string, unknown>) => void
 }) {
+  const { t } = useT()
   const [m, setM] = useState<Partial<BanquetMenu>>(draft)
   const [courses, setCourses] = useState<Partial<BanquetMenuCourse>[]>(
     draft.courses ?? [],
@@ -428,14 +431,14 @@ function MenuSheet({
 
   return (
     <Sheet
-      title={draft.name ? "Edit menu package" : "New menu package"}
-      description="Priced per plate. The courses print on the event order, so the kitchen reads the same sheet the customer signed."
+      title={draft.name ? t("Edit menu package") : t("New menu package")}
+      description={t("Priced per plate. The courses print on the event order, so the kitchen reads the same sheet the customer signed.")}
       onClose={onClose}
       wide
       footer={
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button
             disabled={busy || !(m.menu_name ?? "").trim()}
@@ -457,7 +460,7 @@ function MenuSheet({
               })
             }
           >
-            Save menu
+            {t("Save menu")}
           </Button>
         </div>
       }
@@ -467,7 +470,7 @@ function MenuSheet({
           <Field label="Menu name" className="sm:col-span-2">
             <input
               className={inputCls}
-              placeholder="Silver Veg Buffet"
+              placeholder={t("Silver Veg Buffet")}
               value={m.menu_name ?? ""}
               onChange={(e) => set("menu_name", e.target.value)}
             />
@@ -475,7 +478,7 @@ function MenuSheet({
           <Field label="Code" hint="Prints on the event order">
             <input
               className={inputCls}
-              placeholder="SVB"
+              placeholder={t("SVB")}
               value={m.menu_code ?? ""}
               onChange={(e) => set("menu_code", e.target.value)}
             />
@@ -504,7 +507,7 @@ function MenuSheet({
           <Field label="Cuisine">
             <input
               className={inputCls}
-              placeholder="North Indian"
+              placeholder={t("North Indian")}
               value={m.cuisine ?? ""}
               onChange={(e) => set("cuisine", e.target.value)}
             />
@@ -540,7 +543,7 @@ function MenuSheet({
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-xs font-medium text-zinc-500">Courses</p>
+            <p className="text-xs font-medium text-zinc-500">{t("Courses")}</p>
             <Button
               variant="outline"
               className="!px-2 !py-1 !text-xs"
@@ -552,12 +555,12 @@ function MenuSheet({
               }
             >
               <Plus className="size-3.5" />
-              Course
+              {t("Course")}
             </Button>
           </div>
           {courses.length === 0 ? (
             <p className="text-sm text-zinc-400">
-              No courses yet - Starters, Main course, Live counter, Desserts.
+              {t("No courses yet - Starters, Main course, Live counter, Desserts.")}
             </p>
           ) : (
             <div className="space-y-2">
@@ -568,21 +571,21 @@ function MenuSheet({
                 >
                   <input
                     className={inputCls}
-                    placeholder="Starters (Veg)"
+                    placeholder={t("Starters (Veg)")}
                     value={c.course ?? ""}
                     onChange={(e) => editCourse(i, { course: e.target.value })}
                   />
                   <input
                     className={inputCls}
-                    placeholder="Paneer tikka, Hara bhara kebab, Corn seekh"
+                    placeholder={t("Paneer tikka, Hara bhara kebab, Corn seekh")}
                     value={c.dishes ?? ""}
                     onChange={(e) => editCourse(i, { dishes: e.target.value })}
                   />
                   <input
                     type="number"
                     className={inputCls}
-                    placeholder="Pick"
-                    title="0 = all served. N = the guest chooses N."
+                    placeholder={t("Pick")}
+                    title={t("0 = all served. N = the guest chooses N.")}
                     value={c.choice_of ?? 0}
                     onChange={(e) =>
                       editCourse(i, { choice_of: Number(e.target.value) })
@@ -599,14 +602,14 @@ function MenuSheet({
                         })
                       }
                     />
-                    Live
+                    {t("Live")}
                   </label>
                   <button
                     className="text-zinc-300 hover:text-rose-600"
                     onClick={() =>
                       setCourses((cs) => cs.filter((_, x) => x !== i))
                     }
-                    aria-label="Remove course"
+                    aria-label={t("Remove course")}
                   >
                     <Trash2 className="size-4" />
                   </button>
@@ -621,7 +624,7 @@ function MenuSheet({
             <textarea
               rows={2}
               className={inputCls}
-              placeholder="Crockery, service staff, two soft drinks per head"
+              placeholder={t("Crockery, service staff, two soft drinks per head")}
               value={m.inclusions ?? ""}
               onChange={(e) => set("inclusions", e.target.value)}
             />
@@ -630,7 +633,7 @@ function MenuSheet({
             <textarea
               rows={2}
               className={inputCls}
-              placeholder="Alcohol, live counters, taxes"
+              placeholder={t("Alcohol, live counters, taxes")}
               value={m.exclusions ?? ""}
               onChange={(e) => set("exclusions", e.target.value)}
             />
@@ -654,19 +657,20 @@ function ServiceSheet({
   onClose: () => void
   onSave: (payload: Record<string, unknown>) => void
 }) {
+  const { t } = useT()
   const [s, setS] = useState<Partial<BanquetService>>(draft)
   const set = (k: keyof BanquetService, v: unknown) =>
     setS((x) => ({ ...x, [k]: v }))
 
   return (
     <Sheet
-      title={draft.name ? "Edit service" : "New service"}
-      description="Everything that isn't food: AV, decor, entertainment, furniture, staffing, bar."
+      title={draft.name ? t("Edit service") : t("New service")}
+      description={t("Everything that isn't food: AV, decor, entertainment, furniture, staffing, bar.")}
       onClose={onClose}
       footer={
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button
             disabled={busy || !(s.item_name ?? "").trim()}
@@ -685,7 +689,7 @@ function ServiceSheet({
               })
             }
           >
-            Save service
+            {t("Save service")}
           </Button>
         </div>
       }
@@ -694,7 +698,7 @@ function ServiceSheet({
         <Field label="What is it">
           <input
             className={inputCls}
-            placeholder="LED wall 12×8"
+            placeholder={t("LED wall 12×8")}
             value={s.item_name ?? ""}
             onChange={(e) => set("item_name", e.target.value)}
           />
@@ -775,6 +779,7 @@ function Toggle({
   label: string
   hint: string
 }) {
+  const { t } = useT()
   return (
     <label className="flex items-start gap-2">
       <input
@@ -784,8 +789,8 @@ function Toggle({
         onChange={(e) => onChange(e.target.checked)}
       />
       <span>
-        <span className="block text-sm font-medium text-zinc-700">{label}</span>
-        <span className="block text-xs text-zinc-400">{hint}</span>
+        <span className="block text-sm font-medium text-zinc-700">{t(label)}</span>
+        <span className="block text-xs text-zinc-400">{t(hint)}</span>
       </span>
     </label>
   )
@@ -812,11 +817,12 @@ function DishLibrary({
   onEdit: (d: BanquetDish) => void
   onDelete: (name: string) => void
 }) {
+  const { t } = useT()
   const [error, setError] = useState<string | null>(null)
   const [working, setWorking] = useState(false)
   const [changes, setChanges] = useState<string | null>(null)
 
-  if (!dishes) return <Empty>Loading…</Empty>
+  if (!dishes) return <Empty>{t("Loading…")}</Empty>
 
   const uncosted = dishes.filter((d) => !d.cost_per_portion)
   const byCourse = dishes.reduce<Record<string, BanquetDish[]>>((acc, d) => {
@@ -831,8 +837,10 @@ function DishLibrary({
       const out = await banquet.recostDishes()
       setChanges(
         out.recosted
-          ? `${out.recosted} dish${out.recosted === 1 ? "" : "es"} re-costed.`
-          : "Every dish already matches today's prices.",
+          ? out.recosted === 1
+            ? t("1 dish re-costed.")
+            : t("{n} dishes re-costed.", { n: out.recosted })
+          : t("Every dish already matches today's prices."),
       )
       onChanged()
     } catch (e) {
@@ -847,11 +855,11 @@ function DishLibrary({
       <ErrorNote error={error} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-zinc-500">
-          {dishes.length} dish{dishes.length === 1 ? "" : "es"}
+          {dishes.length === 1 ? t("1 dish") : t("{n} dishes", { n: dishes.length })}
           {uncosted.length > 0 && (
             <span className="text-amber-700">
               {" "}
-              · {uncosted.length} with no recipe, so they cost nothing
+              · {t("{n} with no recipe, so they cost nothing", { n: uncosted.length })}
             </span>
           )}
         </p>
@@ -860,22 +868,20 @@ function DishLibrary({
             variant="outline"
             disabled={busy || working}
             onClick={recost}
-            title="Recomputes every dish as the sum of its recipe: each ingredient's quantity per portion times that ingredient's current cost per unit."
+            title={t("Recomputes every dish as the sum of its recipe: each ingredient's quantity per portion times that ingredient's current cost per unit.")}
           >
-            Re-cost from today&apos;s ingredient prices
+            {t("Re-cost from today's ingredient prices")}
           </Button>
         )}
       </div>
 
       {/* the number on every card is arithmetic, not an estimate - say so */}
       <p className="rounded-lg bg-zinc-50 px-3 py-2 text-xs text-zinc-500">
-        A dish costs the sum of its recipe: for each ingredient,{" "}
+        {t("A dish costs the sum of its recipe: for each ingredient,")}{" "}
         <span className="font-medium text-zinc-700">
-          quantity per portion x that ingredient&apos;s cost per unit
+          {t("quantity per portion x that ingredient's cost per unit")}
         </span>
-        . Re-costing walks every dish and recomputes it at today&apos;s
-        ingredient prices, so a quote is never priced off last season&apos;s
-        onions.
+        {t(". Re-costing walks every dish and recomputes it at today's ingredient prices, so a quote is never priced off last season's onions.")}
       </p>
       {changes && (
         <p className="text-xs text-emerald-700">{changes}</p>
@@ -883,15 +889,14 @@ function DishLibrary({
 
       {dishes.length === 0 ? (
         <Empty>
-          No dishes yet. Add them here, give each one a recipe, and every menu
-          built from them knows what it costs to serve.
+          {t("No dishes yet. Add them here, give each one a recipe, and every menu built from them knows what it costs to serve.")}
         </Empty>
       ) : (
         <div className="space-y-5">
           {Object.entries(byCourse).map(([course, rows]) => (
             <div key={course}>
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                {course}
+                {t(course)}
               </h3>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {rows.map((d) => (
@@ -915,9 +920,9 @@ function DishLibrary({
                           {d.dish_name}
                         </p>
                         <p className="text-xs text-zinc-400">
-                          {d.kitchen}
+                          {t(d.kitchen)}
                           {d.portion_per_pax !== 1
-                            ? ` · ${d.portion_per_pax}/pax`
+                            ? ` · ${t("{n}/pax", { n: d.portion_per_pax })}`
                             : ""}
                           {d.allergens ? ` · ${d.allergens}` : ""}
                         </p>
@@ -927,19 +932,21 @@ function DishLibrary({
                           <p className="tabular-nums">
                             {inr(d.cost_per_portion)}
                             <span className="text-xs text-zinc-400">
-                              /portion
+                              {t("/portion")}
                             </span>
                           </p>
                         ) : (
-                          <p className="text-xs text-amber-700">no recipe</p>
+                          <p className="text-xs text-amber-700">{t("no recipe")}</p>
                         )}
                       </div>
                     </div>
                     <div className="mt-1 flex items-center justify-between gap-2">
                       <p className="text-xs text-zinc-400">
                         {d.recipe.length
-                          ? `${d.recipe.length} ingredient${d.recipe.length === 1 ? "" : "s"}`
-                          : "no recipe"}
+                          ? d.recipe.length === 1
+                            ? t("1 ingredient")
+                            : t("{n} ingredients", { n: d.recipe.length })
+                          : t("no recipe")}
                       </p>
                       {canEdit && (
                         <span className="flex gap-1">
@@ -947,11 +954,11 @@ function DishLibrary({
                             className="text-xs font-medium text-brand-700 hover:underline"
                             onClick={() => onEdit(d)}
                           >
-                            Edit
+                            {t("Edit")}
                           </button>
                           <button
                             className="text-zinc-300 hover:text-rose-600"
-                            aria-label={`Delete ${d.dish_name}`}
+                            aria-label={t("Delete {name}", { name: d.dish_name })}
                             disabled={busy}
                             onClick={() => onDelete(d.name)}
                           >
@@ -989,6 +996,7 @@ function DishSheet({
   onClose: () => void
   onSave: (payload: Record<string, unknown>) => void
 }) {
+  const { t } = useT()
   const [d, setD] = useState<Partial<BanquetDish>>(draft)
   const [recipe, setRecipe] = useState<Partial<RecipeRow>[]>(draft.recipe ?? [])
   const [ingredients, setIngredients] = useState<Row[]>([])
@@ -1018,20 +1026,20 @@ function DishSheet({
 
   return (
     <Sheet
-      title={draft.name ? `Edit ${draft.dish_name}` : "New dish"}
-      description="What it is, which section cooks it, and what one portion costs to make."
+      title={draft.name ? t("Edit {name}", { name: draft.dish_name ?? "" }) : t("New dish")}
+      description={t("What it is, which section cooks it, and what one portion costs to make.")}
       onClose={onClose}
       wide
       footer={
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="text-sm text-zinc-500">
             {recipe.length
-              ? `Costs ${inr(cost)} a portion`
-              : "No recipe yet — this dish will cost nothing"}
+              ? t("Costs {amt} a portion", { amt: inr(cost) })
+              : t("No recipe yet — this dish will cost nothing")}
           </span>
           <div className="flex gap-2">
             <Button variant="outline" onClick={onClose}>
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button
               disabled={busy || !(d.dish_name ?? "").trim()}
@@ -1055,7 +1063,7 @@ function DishSheet({
                 })
               }
             >
-              Save dish
+              {t("Save dish")}
             </Button>
           </div>
         </div>
@@ -1066,7 +1074,7 @@ function DishSheet({
           <Field label="Dish name" className="sm:col-span-2">
             <input
               className={inputCls}
-              placeholder="Paneer Tikka"
+              placeholder={t("Paneer Tikka")}
               value={d.dish_name ?? ""}
               onChange={(e) => set("dish_name", e.target.value)}
             />
@@ -1107,7 +1115,7 @@ function DishSheet({
           <Field label="Allergens" className="sm:col-span-2">
             <input
               className={inputCls}
-              placeholder="Nuts, dairy"
+              placeholder={t("Nuts, dairy")}
               value={d.allergens ?? ""}
               onChange={(e) => set("allergens", e.target.value)}
             />
@@ -1118,10 +1126,10 @@ function DishSheet({
           <div className="mb-2 flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-zinc-500">
-                Recipe — one portion
+                {t("Recipe — one portion")}
               </p>
               <p className="text-[11px] text-zinc-400">
-                Quantities are per portion, in each ingredient&apos;s own unit.
+                {t("Quantities are per portion, in each ingredient's own unit.")}
               </p>
             </div>
             <Button
@@ -1132,29 +1140,26 @@ function DishSheet({
               }
             >
               <Plus className="size-3.5" />
-              Ingredient
+              {t("Ingredient")}
             </Button>
           </div>
 
           {ingredients.length === 0 ? (
             <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              No ingredients on this property yet. Add them under Kitchen
-              Inventory first — a dish can only cost what its ingredients
-              cost.
+              {t("No ingredients on this property yet. Add them under Kitchen Inventory first — a dish can only cost what its ingredients cost.")}
             </p>
           ) : recipe.length === 0 ? (
             <p className="text-sm text-zinc-400">
-              No recipe yet. Without one the dish costs nothing, and every
-              quote built on it will look more profitable than it is.
+              {t("No recipe yet. Without one the dish costs nothing, and every quote built on it will look more profitable than it is.")}
             </p>
           ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-zinc-200 text-left text-xs uppercase tracking-wider text-zinc-400">
-                  <th className="py-1.5 font-medium">Ingredient</th>
-                  <th className="w-24 py-1.5 text-right font-medium">Qty</th>
-                  <th className="w-28 py-1.5 text-right font-medium">Price</th>
-                  <th className="w-24 py-1.5 text-right font-medium">Cost</th>
+                  <th className="py-1.5 font-medium">{t("Ingredient")}</th>
+                  <th className="w-24 py-1.5 text-right font-medium">{t("Qty")}</th>
+                  <th className="w-28 py-1.5 text-right font-medium">{t("Price")}</th>
+                  <th className="w-24 py-1.5 text-right font-medium">{t("Cost")}</th>
                   <th className="w-8" />
                 </tr>
               </thead>
@@ -1173,7 +1178,7 @@ function DishSheet({
                           )
                         }
                       >
-                        <option value="">Choose…</option>
+                        <option value="">{t("Choose…")}</option>
                         {ingredients.map((ing) => (
                           <option key={ing.name} value={ing.name}>
                             {String(ing.ingredient_name)}
@@ -1209,7 +1214,7 @@ function DishSheet({
                     <td className="py-1.5 text-right">
                       <button
                         className="text-zinc-300 hover:text-rose-600"
-                        aria-label="Remove ingredient"
+                        aria-label={t("Remove ingredient")}
                         onClick={() =>
                           setRecipe((rs) => rs.filter((_, n) => n !== i))
                         }
@@ -1221,7 +1226,7 @@ function DishSheet({
                 ))}
                 <tr>
                   <td colSpan={3} className="py-2 text-right font-medium">
-                    One portion costs
+                    {t("One portion costs")}
                   </td>
                   <td className="py-2 text-right font-semibold tabular-nums">
                     {inr(cost)}

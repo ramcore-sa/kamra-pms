@@ -11,7 +11,7 @@ import { Button } from "../components/ui/button"
 import { cn } from "../lib/utils"
 import { cur } from "../lib/money"
 import { useFloorFullscreen } from "../lib/kiosk"
-import { useT } from "../lib/i18n"
+import { t as translate, useT } from "../lib/i18n"
 
 type LineState = "cooking" | "held" | "cancelled" | "done"
 
@@ -120,10 +120,10 @@ function progressOf(o: KotOrder) {
 /* Where the food goes, in the words the kitchen uses. Takeaway and delivery
    have no table or room, and the pass needs to know to pack them. */
 function destination(o: KotOrder): string {
-  if (o.order_type === "Takeaway") return "TAKEAWAY"
-  if (o.order_type === "Delivery") return "DELIVERY"
-  if (o.room_no) return `Room ${o.room_no}`
-  if (o.table_no) return `Table ${o.table_no}`
+  if (o.order_type === "Takeaway") return translate("TAKEAWAY")
+  if (o.order_type === "Delivery") return translate("DELIVERY")
+  if (o.room_no) return translate("Room {n}", { n: o.room_no })
+  if (o.table_no) return translate("Table {n}", { n: o.table_no })
   return o.outlet_name
 }
 
@@ -353,15 +353,15 @@ function TicketDetail({ order, onClose, onAction, busy, now }: {
             </span>
             {order.order_type && (
               <span className="rounded bg-brand-50 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-brand-700">
-                {order.order_type}
+                {t(order.order_type)}
               </span>
             )}
           </div>
           <div className="mt-1 text-sm text-zinc-500">
-            {[order.captain ? `Captain: ${order.captain.split("@")[0]}` : null,
-              order.guests ? `${order.guests} guests` : null,
+            {[order.captain ? t("Captain: {name}", { name: order.captain.split("@")[0] }) : null,
+              order.guests ? t("{n} guests", { n: order.guests }) : null,
               order.outlet_name,
-              order.order_total ? `Order ${cur()}${Math.round(order.order_total)}` : null]
+              order.order_total ? t("Order {amt}", { amt: `${cur()}${Math.round(order.order_total)}` }) : null]
               .filter(Boolean).join(" · ")}
           </div>
         </div>
@@ -608,8 +608,8 @@ export default function Kitchen() {
           {kioskOn && (
             <button type="button" onClick={exitFloor}
               className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-2.5 py-1.5 text-sm font-medium text-zinc-600 hover:bg-zinc-50"
-              title="Show the app menu (Esc)">
-              <Menu className="size-4" />Menu
+              title={t("Show the app menu (Esc)")}>
+              <Menu className="size-4" />{t("Menu")}
             </button>
           )}
           <button onClick={toggleSound}
@@ -670,7 +670,7 @@ export default function Kitchen() {
                   className="w-full px-3 py-2 text-left hover:bg-zinc-50">
                   <div className="flex items-start justify-between gap-2">
                     <span className="min-w-0 text-[10px] font-black uppercase tracking-wider text-zinc-400">
-                      {o.kot_no ? `KOT ${o.kot_no} · ` : ""}{o.order_type}
+                      {o.kot_no ? `KOT ${o.kot_no} · ` : ""}{o.order_type && t(o.order_type)}
                     </span>
                     <span className={cn("shrink-0 text-[10px] font-black uppercase tracking-wider",
                       waiting ? "text-amber-700" : tone.text)}>
@@ -689,14 +689,14 @@ export default function Kitchen() {
                     </span>
                   </div>
                   <div className="truncate text-xs text-zinc-400">
-                    {[o.guests ? `${o.guests} guests` : null,
-                      o.captain ? `Capt. ${o.captain.split("@")[0]}` : null].filter(Boolean).join(" · ")}
+                    {[o.guests ? t("{n} guests", { n: o.guests }) : null,
+                      o.captain ? t("Capt. {name}", { name: o.captain.split("@")[0] }) : null].filter(Boolean).join(" · ")}
                   </div>
                   {tags.length > 0 && (
                     <div className="mt-1.5 flex flex-wrap gap-1">
-                      {tags.map((t) => (
-                        <span key={t} className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500">
-                          {t}
+                      {tags.map((tag) => (
+                        <span key={tag} className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500">
+                          {tag && t(tag)}
                         </span>
                       ))}
                     </div>

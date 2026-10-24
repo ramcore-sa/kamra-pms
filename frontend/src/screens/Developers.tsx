@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { Fragment, useEffect, useState, type ReactNode } from "react"
 import { Check, Copy, KeyRound, RefreshCw, Terminal } from "lucide-react"
 
 import {
@@ -9,8 +9,20 @@ import {
 import { serverError } from "../lib/resource"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Button } from "../components/ui/button"
+import { useT } from "../lib/i18n"
+
+/** Put elements (a <code> span) into a translated sentence at its {name}
+ *  placeholders, so the sentence stays one catalogue key and Arabic can move
+ *  the code wherever its word order needs it. */
+function rich(s: string, nodes: Record<string, ReactNode>): ReactNode[] {
+  return s.split(/(\{\w+\})/).map((part, i) => {
+    const k = /^\{(\w+)\}$/.exec(part)?.[1]
+    return k && k in nodes ? <Fragment key={i}>{nodes[k]}</Fragment> : part
+  })
+}
 
 function Copyable({ label, value }: { label: string; value: string }) {
+  const { t } = useT()
   const [copied, setCopied] = useState(false)
   return (
     <div>
@@ -28,7 +40,7 @@ function Copyable({ label, value }: { label: string; value: string }) {
           className="flex items-center gap-1 rounded-lg border border-zinc-200 px-2.5 text-xs font-medium text-zinc-600 hover:border-brand-600 hover:text-brand-700"
         >
           {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-          {copied ? "Copied" : "Copy"}
+          {copied ? t("Copied") : t("Copy")}
         </button>
       </div>
     </div>
@@ -66,6 +78,7 @@ const ENDPOINTS: { group: string; rows: [string, string][] }[] = [
 ]
 
 export default function Developers() {
+  const { t } = useT()
   const [info, setInfo] = useState<{
     user: string
     has_key: boolean
@@ -88,7 +101,7 @@ export default function Developers() {
     if (
       info?.has_key &&
       !confirm(
-        "Rotating your key invalidates the old one. Any integration using it will stop working. Continue?",
+        t("Rotating your key invalidates the old one. Any integration using it will stop working. Continue?"),
       )
     )
       return
@@ -113,10 +126,9 @@ export default function Developers() {
   return (
     <div className="mx-auto max-w-3xl space-y-5 py-2">
       <div>
-        <h1 className="text-xl font-semibold">Developers</h1>
+        <h1 className="text-xl font-semibold">{t("Developers")}</h1>
         <p className="mt-0.5 text-sm text-zinc-500">
-          Your API key, the REST surface, and how to connect AI agents. Every
-          call runs with your roles and lands in the audit log.
+          {t("Your API key, the REST surface, and how to connect AI agents. Every call runs with your roles and lands in the audit log.")}
         </p>
       </div>
 
@@ -131,38 +143,38 @@ export default function Developers() {
         <CardHeader>
           <div>
             <CardTitle className="flex items-center gap-2">
-              <KeyRound className="size-4 text-zinc-400" /> Your API key
+              <KeyRound className="size-4 text-zinc-400" /> {t("Your API key")}
             </CardTitle>
             <p className="mt-0.5 text-xs text-zinc-400">
-              Signed in as <code className="text-zinc-500">{info?.user}</code>.
-              The secret is shown once - copy it now.
+              {rich(t("Signed in as {user}. The secret is shown once - copy it now."), {
+                user: <code className="text-zinc-500">{info?.user}</code>,
+              })}
             </p>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {key ? (
             <>
-              <Copyable label="API key" value={key.api_key} />
-              <Copyable label="API secret" value={key.api_secret} />
+              <Copyable label={t("API key")} value={key.api_key} />
+              <Copyable label={t("API secret")} value={key.api_secret} />
               <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                Store the secret somewhere safe now - it can't be shown again.
-                Rotate any time from here.
+                {t("Store the secret somewhere safe now - it can't be shown again. Rotate any time from here.")}
               </p>
             </>
           ) : (
             <p className="text-sm text-zinc-600">
               {info?.has_key
-                ? "You already have an API key. Rotate it below to get a fresh key + secret."
-                : "You don't have an API key yet. Generate one to call the REST API or connect an agent."}
+                ? t("You already have an API key. Rotate it below to get a fresh key + secret.")
+                : t("You don't have an API key yet. Generate one to call the REST API or connect an agent.")}
             </p>
           )}
           <Button onClick={generate} disabled={busy}>
             <RefreshCw className="size-4" />
             {busy
-              ? "Generating…"
+              ? t("Generating…")
               : info?.has_key
-                ? "Rotate API key"
-                : "Generate API key"}
+                ? t("Rotate API key")
+                : t("Generate API key")}
           </Button>
         </CardContent>
       </Card>
@@ -175,16 +187,17 @@ export default function Developers() {
               <Terminal className="size-4 text-zinc-400" /> REST API
             </CardTitle>
             <p className="mt-0.5 text-xs text-zinc-400">
-              Base URL <code className="text-zinc-500">{base}</code>. Authenticate
-              with the token header on every request.
+              {rich(t("Base URL {url}. Authenticate with the token header on every request."), {
+                url: <code className="text-zinc-500">{base}</code>,
+              })}
             </p>
           </div>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
-          <Copyable label="Authorization header" value={`Authorization: ${authHeader}`} />
+          <Copyable label={t("Authorization header")} value={`Authorization: ${authHeader}`} />
           <div>
             <div className="mb-1 text-xs font-medium text-zinc-500">
-              Example - today's front desk
+              {t("Example - today's front desk")}
             </div>
             <pre className="overflow-x-auto rounded-lg bg-zinc-900 p-3 text-xs leading-relaxed text-zinc-100">
 {`curl -X POST ${base}/api/method/kamra.api.front_desk_snapshot \\
@@ -194,7 +207,7 @@ export default function Developers() {
             </pre>
           </div>
           <p className="text-xs text-zinc-400">
-            Full reference:{" "}
+            {t("Full reference:")}{" "}
             <a
               href="https://github.com/Kamra-PMS/kamra-pms/blob/main/docs/ai-and-api.md"
               target="_blank"
@@ -210,17 +223,18 @@ export default function Developers() {
       {/* endpoint reference */}
       <Card>
         <CardHeader>
-          <CardTitle>Key endpoints</CardTitle>
+          <CardTitle>{t("Key endpoints")}</CardTitle>
           <p className="mt-0.5 text-xs text-zinc-400">
-            All under <code className="text-zinc-500">/api/method/kamra.api.&lt;name&gt;</code>{" "}
-            (POST, JSON). Role-gated the same as the UI.
+            {rich(t("All under {path} (POST, JSON). Role-gated the same as the UI."), {
+              path: <code className="text-zinc-500">/api/method/kamra.api.&lt;name&gt;</code>,
+            })}
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
           {ENDPOINTS.map((sec) => (
             <div key={sec.group}>
               <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                {sec.group}
+                {t(sec.group)}
               </div>
               <div className="divide-y divide-zinc-100 rounded-lg border border-zinc-100">
                 {sec.rows.map(([name, desc]) => (
@@ -229,7 +243,7 @@ export default function Developers() {
                     className="flex flex-col gap-0.5 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <code className="font-mono text-xs text-zinc-800">{name}</code>
-                    <span className="text-xs text-zinc-500">{desc}</span>
+                    <span className="text-xs text-zinc-500">{t(desc)}</span>
                   </div>
                 ))}
               </div>
@@ -241,13 +255,15 @@ export default function Developers() {
       {/* MCP */}
       <Card>
         <CardHeader>
-          <CardTitle>Connect an AI agent (MCP)</CardTitle>
+          <CardTitle>{t("Connect an AI agent (MCP)")}</CardTitle>
           <p className="mt-0.5 text-xs text-zinc-400">
-            Point Claude at this property over MCP. Staff should use{" "}
-            <a href="/kamra/assistant" className="font-medium text-brand-700 hover:underline">
-              Kamra Agent → Connect Claude
-            </a>
-            . The key above is for unattended / service integrations.
+            {rich(t("Point Claude at this property over MCP. Staff should use {link}. The key above is for unattended / service integrations."), {
+              link: (
+                <a href="/kamra/assistant" className="font-medium text-brand-700 hover:underline">
+                  {t("Kamra Agent → Connect Claude")}
+                </a>
+              ),
+            })}
           </p>
         </CardHeader>
         <CardContent>

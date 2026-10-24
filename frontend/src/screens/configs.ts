@@ -10,7 +10,6 @@ const HkTaskMediaPanel = lazy(() =>
   import("../components/HkMedia").then((m) => ({ default: m.HkTaskMediaPanel })),
 )
 const ReservationDetail = lazy(() => import("./ReservationDetail"))
-import { cur } from "../lib/money"
 
 export const roomsConfig: ScreenConfig = {
   doctype: "Room",
@@ -47,9 +46,9 @@ export const roomTypesConfig: ScreenConfig = {
     { field: "room_type_name", label: "Name" },
     { field: "room_type_code", label: "Code", badge: true },
     { field: "room_category", label: "Category" },
-    { field: "base_price", label: `Base ${cur()}/night` },
+    { field: "base_price", label: "Base {cur}/night" },
     { field: "base_occupancy", label: "Base occ." },
-    { field: "extra_adult_price", label: `Extra adult ${cur()}` },
+    { field: "extra_adult_price", label: "Extra adult {cur}" },
     { field: "tax_percent", label: "GST %" },
   ],
   form: [
@@ -159,7 +158,7 @@ export const vouchersConfig: ScreenConfig = {
   form: [
     { field: "voucher_code", label: "Code", type: "data", required: true },
     { field: "discount_type", label: "Type", type: "select", options: ["Percent", "Amount"] },
-    { field: "value", label: `Value (10 = 10% or ${cur()}10)`, type: "float", required: true },
+    { field: "value", label: "Value (10 = 10% or {cur}10)", type: "float", required: true },
     { field: "valid_from", label: "Valid from", type: "date" },
     { field: "valid_to", label: "Valid to", type: "date" },
     { field: "min_nights", label: "Minimum nights", type: "int" },
@@ -177,8 +176,8 @@ export const mealPlansConfig: ScreenConfig = {
   columns: [
     { field: "code", label: "Code", badge: true },
     { field: "label", label: "Label" },
-    { field: "price_per_adult", label: `${cur()} / adult / night` },
-    { field: "price_per_child", label: `${cur()} / child / night` },
+    { field: "price_per_adult", label: "{cur} / adult / night" },
+    { field: "price_per_child", label: "{cur} / child / night" },
     { field: "is_default", label: "Default" },
   ],
   form: [
@@ -241,8 +240,8 @@ export const venuesConfig: ScreenConfig = {
     { field: "venue_name", label: "Venue" },
     { field: "venue_type", label: "Type", badge: true },
     { field: "capacity", label: "Seats" },
-    { field: "base_price", label: `Day rental ${cur()}` },
-    { field: "hourly_rate", label: `Per hour ${cur()}` },
+    { field: "base_price", label: "Day rental {cur}" },
+    { field: "hourly_rate", label: "Per hour {cur}" },
   ],
   form: [
     { field: "venue_name", label: "Venue name", type: "data", required: true },
@@ -351,8 +350,8 @@ export const venueBookingsConfig: ScreenConfig = {
     { field: "event_date", label: "Date" },
     { field: "pax_guaranteed", label: "Pax" },
     { field: "status", label: "Status", badge: true },
-    { field: "grand_total", label: `Quote ${cur()}` },
-    { field: "balance_due", label: `Due ${cur()}` },
+    { field: "grand_total", label: "Quote {cur}" },
+    { field: "balance_due", label: "Due {cur}" },
   ],
   // The money, the menus and the negotiation live on the function sheet -
   // this form only carries the facts you'd fix in a hurry.
@@ -421,7 +420,7 @@ export const shiftsConfig: ScreenConfig = {
     { field: "shift_date", label: "Date" },
     { field: "shift", label: "Slot", badge: true },
     { field: "status", label: "Status", badge: true },
-    { field: "closing_cash", label: `Closing cash ${cur()}` },
+    { field: "closing_cash", label: "Closing cash {cur}" },
   ],
   form: [
     { field: "shift", label: "Shift", type: "select", options: ["Morning", "Evening", "Night"], required: true },
@@ -445,8 +444,8 @@ export const guardrailsConfig: ScreenConfig = {
   columns: [
     { field: "name", label: "Rail" },
     { field: "room_type", label: "Room type (blank = all)" },
-    { field: "floor_price", label: `Floor ${cur()}` },
-    { field: "ceiling_price", label: `Ceiling ${cur()}` },
+    { field: "floor_price", label: "Floor {cur}" },
+    { field: "ceiling_price", label: "Ceiling {cur}" },
     { field: "days_of_week", label: "Days" },
   ],
   form: [
@@ -546,8 +545,8 @@ export const reservationsConfig: ScreenConfig = {
     { field: "status", label: "Status", badge: true },
     { field: "booking_type", label: "Type" },
     { field: "source", label: "Source" },
-    { field: "amount_after_tax", label: `Total ${cur()}` },
-    { field: "advance_paid", label: `Advance ${cur()}` },
+    { field: "amount_after_tax", label: "Total {cur}" },
+    { field: "advance_paid", label: "Advance {cur}" },
   ],
   // Editing happens in the bespoke detail panel; keep a minimal form as the
   // fallback shape the generic screen still expects.

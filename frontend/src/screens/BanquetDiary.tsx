@@ -18,6 +18,7 @@ import {
   type FunctionStatus,
 } from "../lib/api"
 import { serverError } from "../lib/resource"
+import { useT } from "../lib/i18n"
 import { Button } from "../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Sheet } from "../components/ui/sheet"
@@ -37,6 +38,7 @@ import {
 const SPAN = 14
 
 export default function BanquetDiary() {
+  const { t } = useT()
   const navigate = useNavigate()
   const [start, setStart] = useState(today())
   const [data, setData] = useState<BanquetCalendarData | null>(null)
@@ -64,10 +66,9 @@ export default function BanquetDiary() {
     <Card>
       <CardHeader>
         <div>
-          <CardTitle>Function diary</CardTitle>
+          <CardTitle>{t("Function diary")}</CardTitle>
           <p className="mt-0.5 text-xs text-zinc-400">
-            Every hall's fortnight. Click a day to check availability, or a
-            function to open it.
+            {t("Every hall's fortnight. Click a day to check availability, or a function to open it.")}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
@@ -75,7 +76,7 @@ export default function BanquetDiary() {
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-zinc-400" />
             <input
               className={inputCls + " !w-44 pl-8"}
-              placeholder="Customer…"
+              placeholder={t("Customer…")}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -85,29 +86,29 @@ export default function BanquetDiary() {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <option value="">All statuses</option>
+            <option value="">{t("All statuses")}</option>
             {STATUSES.map((s) => (
-              <option key={s}>{s}</option>
+              <option key={s} value={s}>{t(s)}</option>
             ))}
           </select>
           <Button variant="outline" onClick={() => setCheck(true)}>
             <CalendarSearch className="size-4" />
-            Check a date
+            {t("Check a date")}
           </Button>
           <Button
             variant="outline"
             onClick={() => setStart(shiftDate(start, -SPAN))}
-            aria-label="Earlier"
+            aria-label={t("Earlier")}
           >
             <ChevronLeft className="size-4" />
           </Button>
           <Button variant="outline" onClick={() => setStart(today())}>
-            Today
+            {t("Today")}
           </Button>
           <Button
             variant="outline"
             onClick={() => setStart(shiftDate(start, SPAN))}
-            aria-label="Later"
+            aria-label={t("Later")}
           >
             <ChevronRight className="size-4" />
           </Button>
@@ -116,7 +117,7 @@ export default function BanquetDiary() {
       <CardContent>
         <ErrorNote error={error} />
         {data && data.venues.length === 0 && (
-          <Empty>No halls yet - add them under Venues.</Empty>
+          <Empty>{t("No halls yet - add them under Venues.")}</Empty>
         )}
         {data && data.venues.length > 0 && (
           <div className="overflow-x-auto">
@@ -124,7 +125,7 @@ export default function BanquetDiary() {
               <thead>
                 <tr>
                   <th className="sticky left-0 z-10 bg-white p-2 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                    Hall
+                    {t("Hall")}
                   </th>
                   {data.dates.map((d) => (
                     <th
@@ -148,7 +149,7 @@ export default function BanquetDiary() {
                     <td className="sticky left-0 z-10 border-b border-zinc-100 bg-white p-2 align-top">
                       <div className="font-medium">{v.venue_name}</div>
                       <div className="text-xs text-zinc-400">
-                        {v.capacity ? `${v.capacity} pax · ` : ""}
+                        {v.capacity ? `${t("{n} pax", { n: v.capacity })} · ` : ""}
                         {inr(v.base_price)}
                       </div>
                     </td>
@@ -170,7 +171,7 @@ export default function BanquetDiary() {
                                     `&date=${d}`,
                                 )
                               }
-                              aria-label="Open - start an enquiry"
+                              aria-label={t("Open - start an enquiry")}
                               className="flex w-full items-center justify-center rounded py-2 text-zinc-300 opacity-0 transition-opacity hover:bg-brand-50 hover:text-brand-600 group-hover:opacity-100"
                             >
                               +
@@ -207,7 +208,7 @@ export default function BanquetDiary() {
                   STATUS_TONE[s]
                 }
               />
-              {s}
+              {t(s)}
             </span>
           ))}
         </div>
@@ -219,6 +220,7 @@ export default function BanquetDiary() {
 }
 
 function FunctionChip({ b }: { b: BanquetCalendarCell }) {
+  const { t } = useT()
   return (
     <div
       className={
@@ -226,12 +228,12 @@ function FunctionChip({ b }: { b: BanquetCalendarCell }) {
         (STATUS_TONE[b.status] ?? "bg-zinc-100 text-zinc-600 ring-zinc-500/20") +
         (b.status === "Tentative" ? " border-dashed" : "")
       }
-      title={`${b.event_type} · ${b.customer_name} · ${b.pax} pax · ${inr(
+      title={`${t(b.event_type)} · ${b.customer_name} · ${t("{n} pax", { n: b.pax })} · ${inr(
         b.grand_total,
-      )}${b.balance_due > 0 ? ` (${inr(b.balance_due)} due)` : ""}`}
+      )}${b.balance_due > 0 ? ` (${t("{amt} due", { amt: inr(b.balance_due) })})` : ""}`}
     >
       <div className="truncate font-semibold">
-        {b.event_name || b.event_type}
+        {b.event_name || t(b.event_type)}
         {b.day_span > 1 && (
           <span className="font-normal opacity-70">
             {" "}
@@ -251,6 +253,7 @@ function FunctionChip({ b }: { b: BanquetCalendarCell }) {
 /* ── "do you have the 14th?" ──────────────────────────────────────────── */
 
 function AvailabilitySheet({ onClose }: { onClose: () => void }) {
+  const { t } = useT()
   const [form, setForm] = useState({
     event_date: today(),
     end_date: "",
@@ -283,8 +286,8 @@ function AvailabilitySheet({ onClose }: { onClose: () => void }) {
 
   return (
     <Sheet
-      title="Is the hall free?"
-      description="Two functions can share a hall morning and evening - only a real overlap in hours counts as taken."
+      title={t("Is the hall free?")}
+      description={t("Two functions can share a hall morning and evening - only a real overlap in hours counts as taken.")}
       onClose={onClose}
       wide
     >
@@ -334,7 +337,7 @@ function AvailabilitySheet({ onClose }: { onClose: () => void }) {
 
       <div className="mt-4 space-y-2">
         {venues === null ? (
-          <Empty>Checking…</Empty>
+          <Empty>{t("Checking…")}</Empty>
         ) : (
           venues.map((v) => (
             <div
@@ -353,9 +356,9 @@ function AvailabilitySheet({ onClose }: { onClose: () => void }) {
                   <p className="font-medium">
                     {v.venue_name}
                     <span className="ml-2 text-xs font-normal text-zinc-500">
-                      {v.venue_type} · seats {v.capacity}
-                      {v.min_capacity ? ` (min ${v.min_capacity})` : ""}
-                      {v.area_sqft ? ` · ${v.area_sqft} sq ft` : ""}
+                      {t(v.venue_type)} · {t("seats {n}", { n: v.capacity })}
+                      {v.min_capacity ? ` (${t("min {n}", { n: v.min_capacity })})` : ""}
+                      {v.area_sqft ? ` · ${t("{n} sq ft", { n: v.area_sqft })}` : ""}
                     </span>
                   </p>
                   {v.setup_styles && (
@@ -367,7 +370,7 @@ function AvailabilitySheet({ onClose }: { onClose: () => void }) {
                         .filter((c) => c.kind === "confirmed")
                         .map(
                           (c) =>
-                            `${c.customer_name} on ${c.event_date}` +
+                            t("{name} on {date}", { name: c.customer_name, date: c.event_date }) +
                             (c.start_time
                               ? ` ${String(c.start_time).slice(0, 5)}–${String(
                                   c.end_time ?? "",
@@ -380,7 +383,7 @@ function AvailabilitySheet({ onClose }: { onClose: () => void }) {
                   {v.available &&
                     v.conflicts.some((c) => c.kind === "tentative") && (
                       <p className="mt-1 text-xs text-amber-700">
-                        Soft hold you can sell over:{" "}
+                        {t("Soft hold you can sell over:")}{" "}
                         {v.conflicts
                           .filter((c) => c.kind === "tentative")
                           .map((c) => c.customer_name)
@@ -389,12 +392,12 @@ function AvailabilitySheet({ onClose }: { onClose: () => void }) {
                     )}
                   {v.available && !v.fits && (
                     <p className="mt-1 text-xs text-amber-700">
-                      Smaller than the pax count.
+                      {t("Smaller than the pax count.")}
                     </p>
                   )}
                   {v.available && v.under_minimum && (
                     <p className="mt-1 text-xs text-amber-700">
-                      Below this hall's usual minimum - check the minimum spend.
+                      {t("Below this hall's usual minimum - check the minimum spend.")}
                     </p>
                   )}
                 </div>
@@ -402,8 +405,8 @@ function AvailabilitySheet({ onClose }: { onClose: () => void }) {
                   <p className="tabular-nums">{inr(v.base_price)}</p>
                   {v.hourly_rate > 0 && (
                     <p className="text-xs text-zinc-400">
-                      {inr(v.hourly_rate)}/hr
-                      {v.min_hours ? `, min ${v.min_hours}h` : ""}
+                      {t("{amt}/hr", { amt: inr(v.hourly_rate) })}
+                      {v.min_hours ? `, ${t("min {n}h", { n: v.min_hours })}` : ""}
                     </p>
                   )}
                 </div>

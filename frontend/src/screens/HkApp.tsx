@@ -132,7 +132,7 @@ export default function HkApp() {
 
   // remove a photo/video from the task
   async function removeMedia(task: string, url: string) {
-    if (!confirm("Remove this photo/video?")) return
+    if (!confirm(t("Remove this photo/video?"))) return
     setBusy(task)
     try {
       await call("kamra.api.hk_delete_media", { task, file_url: url })
@@ -404,7 +404,7 @@ export default function HkApp() {
                 )}
               >
                 {r.vip ? (
-                  <Star className="absolute right-1.5 top-1.5 size-3.5 fill-amber-400 text-amber-400" aria-label="VIP" />
+                  <Star className="absolute right-1.5 top-1.5 size-3.5 fill-amber-400 text-amber-400" aria-label={t("VIP")} />
                 ) : null}
                 <div className="flex items-center justify-center gap-1 text-xl font-bold">
                   {r.room_number}
@@ -418,12 +418,12 @@ export default function HkApp() {
                 <div className="mt-1 flex items-center justify-center gap-1">
                   {r.arrival_today && (
                     <span className="inline-flex items-center gap-0.5 text-[9px] font-medium">
-                      <Plane className="size-3" aria-label="Arrival today" />
+                      <Plane className="size-3" aria-label={t("Arrival today")} />
                       {r.eta || ""}
                     </span>
                   )}
                   {r.departure_today ? (
-                    <Clock className="size-3" aria-label="Departure today" />
+                    <Clock className="size-3" aria-label={t("Departure today")} />
                   ) : null}
                 </div>
               </button>
@@ -576,7 +576,7 @@ export default function HkApp() {
                   className="w-full rounded-xl bg-brand-600 py-3 text-base font-semibold text-white"
                   onClick={() => setCharge(null)}
                 >
-                  Done
+                  {t("Done")}
                 </button>
               </div>
             ) : (

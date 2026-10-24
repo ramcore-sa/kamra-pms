@@ -1,0 +1,1 @@
+function m(n,e,t){const a=Number.isFinite(n)?n:e,s=Math.max(e,a);return t>0?Math.min(s,t):s}function c(n,e){const t=(n||[]).map(a=>Number(a[e])||0);return t.length&&t.every(a=>a>0)?Math.max(...t):0}export{m as c,c as m};

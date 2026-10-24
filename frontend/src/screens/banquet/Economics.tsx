@@ -32,6 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Sheet } from "../../components/ui/sheet"
 import { taxLabel } from "../../lib/money"
 import { Empty, ErrorNote, Field, inputCls, inr, Select } from "./shared"
+import { useT } from "../../lib/i18n"
 
 type Act = (work: () => Promise<unknown>) => Promise<void>
 
@@ -44,6 +45,7 @@ export default function Economics({
   busy: boolean
   act: Act
 }) {
+  const { t } = useT()
   const [data, setData] = useState<FunctionEconomics | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [indent, setIndent] = useState<KitchenIndent | null>(null)
@@ -58,7 +60,7 @@ export default function Economics({
   }, [fn])
   useEffect(load, [load])
 
-  if (!data) return <Empty>{error ?? "Loading…"}</Empty>
+  if (!data) return <Empty>{error ?? t("Loading…")}</Empty>
   const m = data.margin
   const healthy = m.percent >= 35
 
@@ -67,27 +69,27 @@ export default function Economics({
       <ErrorNote error={error} />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Tile label="Revenue" value={inr(data.revenue.taxable)} sub="before tax" />
+        <Tile label={t("Revenue")} value={inr(data.revenue.taxable)} sub={t("before tax")} />
         <Tile
-          label="Cost"
+          label={t("Cost")}
           value={inr(data.cost.net)}
           sub={
             data.cost.itc_eligible
-              ? `after ${inr(data.cost.input_tax)} credit`
-              : "no credit claimable"
+              ? t("after {amt} credit", { amt: inr(data.cost.input_tax) })
+              : t("no credit claimable")
           }
           tone="text-zinc-600"
         />
         <Tile
-          label="Gross margin"
+          label={t("Gross margin")}
           value={inr(m.gross)}
-          sub={`${inr(m.per_pax)} per head`}
+          sub={t("{amt} per head", { amt: inr(m.per_pax) })}
           tone={healthy ? "text-emerald-700" : "text-amber-700"}
         />
         <Tile
-          label="Margin"
+          label={t("Margin")}
           value={`${m.percent}%`}
-          sub={healthy ? "healthy" : "thin — check the discount"}
+          sub={healthy ? t("healthy") : t("thin — check the discount")}
           tone={healthy ? "text-emerald-700" : "text-amber-700"}
         />
       </div>
@@ -97,13 +99,13 @@ export default function Economics({
           <AlertTriangle className="mt-0.5 size-4 shrink-0" />
           <p>
             <span className="font-medium">
-              {data.uncosted_lines.length} line
-              {data.uncosted_lines.length === 1 ? "" : "s"} cost nothing yet
+              {data.uncosted_lines.length === 1
+                ? t("1 line costs nothing yet")
+                : t("{n} lines cost nothing yet", { n: data.uncosted_lines.length })}
             </span>{" "}
             — {data.uncosted_lines.slice(0, 4).join(", ")}
-            {data.uncosted_lines.length > 4 ? "…" : ""}. The margin above is
-            optimistic until they carry a cost: choose the menu's dishes, or
-            put a cost rate on the service in the catalogue.
+            {data.uncosted_lines.length > 4 ? "…" : ""}.{" "}
+            {t("The margin above is optimistic until they carry a cost: choose the menu's dishes, or put a cost rate on the service in the catalogue.")}
           </p>
         </div>
       )}
@@ -114,63 +116,63 @@ export default function Economics({
             <CardTitle>
               <span className="inline-flex items-center gap-1.5">
                 <TrendingUp className="size-4" />
-                Where the money goes
+                {t("Where the money goes")}
               </span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <Bar
-              label="Food"
+              label={t("Food")}
               value={data.cost.food}
               of={data.revenue.taxable}
               tone="bg-orange-400"
             />
             <Bar
-              label="Services & hire"
+              label={t("Services & hire")}
               value={data.cost.service}
               of={data.revenue.taxable}
               tone="bg-sky-400"
             />
             <Bar
-              label="Margin"
+              label={t("Margin")}
               value={Math.max(0, m.gross)}
               of={data.revenue.taxable}
               tone="bg-emerald-500"
             />
             <dl className="mt-3 space-y-1 border-t border-zinc-100 pt-3">
-              <Line label="Subtotal" value={data.revenue.subtotal} />
+              <Line label={t("Subtotal")} value={data.revenue.subtotal} />
               {data.revenue.discount > 0 && (
-                <Line label="Discount" value={-data.revenue.discount} />
+                <Line label={t("Discount")} value={-data.revenue.discount} />
               )}
               {data.revenue.service_charge > 0 && (
                 <Line
-                  label="Service charge"
+                  label={t("Service charge")}
                   value={data.revenue.service_charge}
                 />
               )}
               {data.revenue.supplementary > 0 && (
                 <Line
-                  label="Ordered on the night"
+                  label={t("Ordered on the night")}
                   value={data.revenue.supplementary}
                   tone="text-amber-700"
                 />
               )}
-              <Line label="Taxable" value={data.revenue.taxable} bold />
+              <Line label={t("Taxable")} value={data.revenue.taxable} bold />
               <Line
-                label={`${taxLabel()} charged`}
+                label={t("{tax} charged", { tax: taxLabel() })}
                 value={data.revenue.tax}
                 tone="text-zinc-400"
               />
               <Line
-                label={`${taxLabel()} paid on cost`}
+                label={t("{tax} paid on cost", { tax: taxLabel() })}
                 value={data.cost.input_tax}
                 tone="text-zinc-400"
               />
             </dl>
             <p className="pt-1 text-xs text-zinc-400">
               {data.cost.itc_eligible
-                ? `Billed at 12% or more, so the ${inr(data.cost.input_tax)} paid on the cost side is claimable as input credit — the margin above nets it off.`
-                : `Billed under the 5% food scheme, so the ${inr(data.cost.input_tax)} paid on purchases is NOT claimable. It stays in the cost.`}
+                ? t("Billed at 12% or more, so the {amt} paid on the cost side is claimable as input credit — the margin above nets it off.", { amt: inr(data.cost.input_tax) })
+                : t("Billed under the 5% food scheme, so the {amt} paid on purchases is NOT claimable. It stays in the cost.", { amt: inr(data.cost.input_tax) })}
             </p>
           </CardContent>
         </Card>
@@ -180,7 +182,7 @@ export default function Economics({
             <CardTitle>
               <span className="inline-flex items-center gap-1.5">
                 <ChefHat className="size-4" />
-                The kitchen
+                {t("The kitchen")}
               </span>
             </CardTitle>
             <Button
@@ -190,24 +192,22 @@ export default function Economics({
               }
               disabled={busy}
             >
-              Build the indent
+              {t("Build the indent")}
             </Button>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-zinc-500">
-              The chosen dishes, exploded through their recipes at{" "}
-              {fn.billable_pax} pax, checked against what's on the shelf — the
-              sheet that has always been written by hand between the event
-              order and the store room.
+              {t("The chosen dishes, exploded through their recipes at {pax} pax, checked against what's on the shelf — the sheet that has always been written by hand between the event order and the store room.", { pax: fn.billable_pax })}
             </p>
             {fn.selections?.length ? (
               <p className="mt-2 text-xs text-emerald-700">
-                {fn.selections.length} dish
-                {fn.selections.length === 1 ? "" : "es"} chosen.
+                {fn.selections.length === 1
+                  ? t("1 dish chosen.")
+                  : t("{n} dishes chosen.", { n: fn.selections.length })}
               </p>
             ) : (
               <p className="mt-2 text-xs text-amber-700">
-                Nothing chosen yet — compose the menu first.
+                {t("Nothing chosen yet — compose the menu first.")}
               </p>
             )}
           </CardContent>
@@ -216,15 +216,15 @@ export default function Economics({
 
       <Card>
         <CardHeader>
-          <CardTitle>Quoted vs served</CardTitle>
+          <CardTitle>{t("Quoted vs served")}</CardTitle>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setSupp(true)}>
               <Plus className="size-4" />
-              Ordered on the night
+              {t("Ordered on the night")}
             </Button>
             <Button onClick={() => setCounting(true)}>
               <PackageCheck className="size-4" />
-              Count the night
+              {t("Count the night")}
             </Button>
           </div>
         </CardHeader>
@@ -233,12 +233,12 @@ export default function Economics({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-zinc-200 text-left text-xs uppercase tracking-wider text-zinc-400">
-                  <th className="py-2 pr-3 font-medium">Item</th>
-                  <th className="py-2 pr-3 text-right font-medium">Quoted</th>
-                  <th className="py-2 pr-3 text-right font-medium">Served</th>
-                  <th className="py-2 pr-3 text-right font-medium">Revenue</th>
-                  <th className="py-2 pr-3 text-right font-medium">Cost</th>
-                  <th className="py-2 text-right font-medium">Margin</th>
+                  <th className="py-2 pr-3 font-medium">{t("Item")}</th>
+                  <th className="py-2 pr-3 text-right font-medium">{t("Quoted")}</th>
+                  <th className="py-2 pr-3 text-right font-medium">{t("Served")}</th>
+                  <th className="py-2 pr-3 text-right font-medium">{t("Revenue")}</th>
+                  <th className="py-2 pr-3 text-right font-medium">{t("Cost")}</th>
+                  <th className="py-2 text-right font-medium">{t("Margin")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -248,12 +248,12 @@ export default function Economics({
                       {l.item_name}
                       {l.is_supplementary && (
                         <span className="ml-1.5 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
-                          on the night
+                          {t("on the night")}
                         </span>
                       )}
                       {!l.chargeable && (
                         <span className="ml-1.5 rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">
-                          free
+                          {t("free")}
                         </span>
                       )}
                     </td>
@@ -261,7 +261,7 @@ export default function Economics({
                       {l.quoted_qty % 1 === 0
                         ? l.quoted_qty
                         : l.quoted_qty.toFixed(2)}{" "}
-                      {l.uom}
+                      {t(l.uom)}
                     </td>
                     <td className="py-1.5 pr-3 text-right tabular-nums">
                       {l.actual_qty === null ? (
@@ -441,6 +441,7 @@ function IndentSheet({
   onClose: () => void
   onIssue: (outlet: string) => void
 }) {
+  const { t } = useT()
   const [outlets, setOutlets] = useState<Row[]>([])
   const [outlet, setOutlet] = useState("")
   useEffect(() => {
@@ -457,18 +458,18 @@ function IndentSheet({
 
   return (
     <Sheet
-      title="Kitchen indent"
-      description={`${indent.pax} pax · ${indent.venue} · ${indent.event_date}`}
+      title={t("Kitchen indent")}
+      description={`${t("{n} pax", { n: indent.pax })} · ${indent.venue} · ${indent.event_date}`}
       onClose={onClose}
       wide
       footer={
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="text-sm text-zinc-500">
-            {inr(indent.total_cost)} of ingredients
+            {t("{amt} of ingredients", { amt: inr(indent.total_cost) })}
             {indent.shortfall_lines > 0 && (
               <span className="text-amber-700">
                 {" "}
-                · {indent.shortfall_lines} short on the shelf
+                · {t("{n} short on the shelf", { n: indent.shortfall_lines })}
               </span>
             )}
           </span>
@@ -487,10 +488,10 @@ function IndentSheet({
               </select>
             </Field>
             <Button variant="outline" onClick={() => window.print()}>
-              Print
+              {t("Print")}
             </Button>
             <Button disabled={busy || !outlet} onClick={() => onIssue(outlet)}>
-              Issue the stock
+              {t("Issue the stock")}
             </Button>
           </div>
         </div>
@@ -498,19 +499,18 @@ function IndentSheet({
     >
       {indent.uncosted.length > 0 && (
         <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          No recipe for {indent.uncosted.join(", ")} — those dishes aren't on
-          this list and won't be pulled from stock.
+          {t("No recipe for {dishes} — those dishes aren't on this list and won't be pulled from stock.", { dishes: indent.uncosted.join(", ") })}
         </div>
       )}
 
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-zinc-200 text-left text-xs uppercase tracking-wider text-zinc-400">
-            <th className="py-2 pr-3 font-medium">Ingredient</th>
-            <th className="py-2 pr-3 text-right font-medium">Need</th>
-            <th className="py-2 pr-3 text-right font-medium">On hand</th>
-            <th className="py-2 pr-3 text-right font-medium">Short</th>
-            <th className="py-2 text-right font-medium">Cost</th>
+            <th className="py-2 pr-3 font-medium">{t("Ingredient")}</th>
+            <th className="py-2 pr-3 text-right font-medium">{t("Need")}</th>
+            <th className="py-2 pr-3 text-right font-medium">{t("On hand")}</th>
+            <th className="py-2 pr-3 text-right font-medium">{t("Short")}</th>
+            <th className="py-2 text-right font-medium">{t("Cost")}</th>
           </tr>
         </thead>
         <tbody>
@@ -592,17 +592,18 @@ function CountSheet({
     ),
   )
   const [actual, setActual] = useState(String(data.pax || pax))
+  const { t } = useT()
 
   return (
     <Sheet
-      title="Count the night"
-      description="What was actually served. Until this is recorded the bill is a forecast."
+      title={t("Count the night")}
+      description={t("What was actually served. Until this is recorded the bill is a forecast.")}
       onClose={onClose}
       wide
       footer={
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button
             disabled={busy}
@@ -617,7 +618,7 @@ function CountSheet({
               )
             }
           >
-            Record it
+            {t("Record it")}
           </Button>
         </div>
       }
@@ -637,9 +638,9 @@ function CountSheet({
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-zinc-200 text-left text-xs uppercase tracking-wider text-zinc-400">
-            <th className="py-2 pr-3 font-medium">Item</th>
-            <th className="py-2 pr-3 text-right font-medium">Quoted</th>
-            <th className="py-2 text-right font-medium">Served</th>
+            <th className="py-2 pr-3 font-medium">{t("Item")}</th>
+            <th className="py-2 pr-3 text-right font-medium">{t("Quoted")}</th>
+            <th className="py-2 text-right font-medium">{t("Served")}</th>
           </tr>
         </thead>
         <tbody>
@@ -647,7 +648,7 @@ function CountSheet({
             <tr key={l.row} className="border-b border-zinc-100">
               <td className="py-1.5 pr-3">{l.item_name}</td>
               <td className="py-1.5 pr-3 text-right tabular-nums text-zinc-400">
-                {l.quoted_qty} {l.uom}
+                {l.quoted_qty} {t(l.uom)}
               </td>
               <td className="py-1.5 text-right">
                 <input
@@ -685,18 +686,19 @@ function SupplementarySheet({
     cost_rate: "",
     is_alcohol: false,
   })
+  const { t } = useT()
   const set = (k: keyof typeof form, v: string | boolean) =>
     setForm((f) => ({ ...f, [k]: v }))
 
   return (
     <Sheet
-      title="Ordered on the night"
-      description="Another round at the bar, twenty extra plates, a second cake — it bills on top of the agreed quote."
+      title={t("Ordered on the night")}
+      description={t("Another round at the bar, twenty extra plates, a second cake — it bills on top of the agreed quote.")}
       onClose={onClose}
       footer={
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button
             disabled={busy || !form.item_name.trim() || !Number(form.rate)}
@@ -712,7 +714,7 @@ function SupplementarySheet({
               })
             }
           >
-            Add it
+            {t("Add it")}
           </Button>
         </div>
       }
@@ -721,7 +723,7 @@ function SupplementarySheet({
         <Field label="What was it">
           <input
             className={inputCls}
-            placeholder="Extra bar round"
+            placeholder={t("Extra bar round")}
             value={form.item_name}
             onChange={(e) => set("item_name", e.target.value)}
           />
@@ -782,10 +784,10 @@ function SupplementarySheet({
           />
           <span>
             <span className="block text-sm font-medium text-zinc-700">
-              Alcohol
+              {t("Alcohol")}
             </span>
             <span className="block text-xs text-zinc-400">
-              Never rides a company bill — it settles separately.
+              {t("Never rides a company bill — it settles separately.")}
             </span>
           </span>
         </label>

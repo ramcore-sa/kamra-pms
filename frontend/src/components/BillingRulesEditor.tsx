@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { call, getCurrentProperty } from "../lib/api"
 import { Button } from "./ui/button"
 import type { Row } from "../lib/resource"
+import { useT } from "../lib/i18n"
 
 /** Which charge types bill to the company on corporate stays. Anything
  * unchecked - and all alcohol, always - goes to the guest folio. */
@@ -37,6 +38,7 @@ function shortLabel(d: BillingDefault) {
 }
 
 export default function BillingRulesEditor({ row }: { row: Row; reload: () => void }) {
+  const { t } = useT()
   const [toCompany, setToCompany] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -64,12 +66,12 @@ export default function BillingRulesEditor({ row }: { row: Row; reload: () => vo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [row.name])
 
-  function toggle(t: string) {
+  function toggle(ct: string) {
     setSaved(false)
     setToCompany((prev) => {
       const next = new Set(prev)
-      if (next.has(t)) next.delete(t)
-      else next.add(t)
+      if (next.has(ct)) next.delete(ct)
+      else next.add(ct)
       return next
     })
   }
@@ -79,8 +81,8 @@ export default function BillingRulesEditor({ row }: { row: Row; reload: () => vo
     try {
       await call("kamra.api.set_billing_rules", {
         company: row.name,
-        rules: ROUTABLE.filter((t) => toCompany.has(t)).map((t) => ({
-          charge_type: t,
+        rules: ROUTABLE.filter((ct) => toCompany.has(ct)).map((ct) => ({
+          charge_type: ct,
           pay_by: "Company",
         })),
       })
@@ -93,25 +95,24 @@ export default function BillingRulesEditor({ row }: { row: Row; reload: () => vo
 
   return (
     <div className="border-t border-zinc-200 pt-4">
-      <h3 className="text-sm font-medium text-zinc-600">Billing rules</h3>
+      <h3 className="text-sm font-medium text-zinc-600">{t("Billing rules")}</h3>
       <p className="mb-2 mt-0.5 text-xs text-zinc-400">
-        Ticked charge types post to the Company folio on corporate stays.
-        Everything else - and alcohol, always - bills to the guest.
+        {t("Ticked charge types post to the Company folio on corporate stays. Everything else - and alcohol, always - bills to the guest.")}
       </p>
       {fallback?.applies && (
         <p className="mb-2 rounded-md bg-brand-50 px-2 py-1.5 text-xs text-brand-700">
-          No rules: using the property default - {shortLabel(fallback)}
+          {t("No rules: using the property default - {policy}", { policy: t(shortLabel(fallback)) })}
           {fallback.charge_types === null
-            ? " (every charge except liquor)."
+            ? t(" (every charge except liquor).")
             : fallback.charge_types.length
-              ? ` (${fallback.charge_types.join(", ")}).`
-              : " (the company pays nothing)."}{" "}
-          Change it in Settings, Finance. Saving rules here replaces the default for this company.
+              ? t(" ({types}).", { types: fallback.charge_types.map((ct) => t(ct)).join(", ") })
+              : t(" (the company pays nothing).")}{" "}
+          {t("Change it in Settings, Finance. Saving rules here replaces the default for this company.")}
         </p>
       )}
       {fallback && !fallback.credit_allowed && !fallback.has_rules && (
         <p className="mb-2 text-xs text-zinc-400">
-          No rules and no credit: everything bills to the guest.
+          {t("No rules and no credit: everything bills to the guest.")}
         </p>
       )}
       <div className="mb-2 flex gap-1.5">
@@ -122,7 +123,7 @@ export default function BillingRulesEditor({ row }: { row: Row; reload: () => vo
             setToCompany(new Set(["Room", "Meal Plan"]))
           }}
         >
-          Stay only
+          {t("Stay only")}
         </button>
         <button
           className="rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 hover:border-brand-600"
@@ -131,7 +132,7 @@ export default function BillingRulesEditor({ row }: { row: Row; reload: () => vo
             setToCompany(new Set(ROUTABLE))
           }}
         >
-          Everything
+          {t("Everything")}
         </button>
         <button
           className="rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 hover:border-brand-600"
@@ -140,27 +141,27 @@ export default function BillingRulesEditor({ row }: { row: Row; reload: () => vo
             setToCompany(new Set())
           }}
         >
-          Nothing
+          {t("Nothing")}
         </button>
       </div>
       <div className="grid grid-cols-2 gap-1.5">
-        {ROUTABLE.map((t) => (
-          <label key={t} className="flex items-center gap-2 text-sm">
+        {ROUTABLE.map((ct) => (
+          <label key={ct} className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
               className="size-4 accent-brand-600"
-              checked={toCompany.has(t)}
-              onChange={() => toggle(t)}
+              checked={toCompany.has(ct)}
+              onChange={() => toggle(ct)}
             />
-            {t}
+            {t(ct)}
           </label>
         ))}
       </div>
       <div className="mt-3 flex items-center gap-2">
         <Button variant="outline" disabled={busy} onClick={save}>
-          {busy ? "Saving…" : "Save rules"}
+          {busy ? t("Saving…") : t("Save rules")}
         </Button>
-        {saved && <span className="text-xs text-emerald-600">Saved</span>}
+        {saved && <span className="text-xs text-emerald-600">{t("Saved")}</span>}
       </div>
     </div>
   )

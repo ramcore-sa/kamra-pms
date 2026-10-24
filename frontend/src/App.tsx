@@ -89,7 +89,7 @@ class ErrorBoundary extends Component<
       return (
         <div className="mx-auto max-w-lg p-8">
           <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
-            <p className="font-semibold">Something broke in the UI.</p>
+            <p className="font-semibold">{t("Something broke in the UI.")}</p>
             <p className="mt-1 font-mono text-xs">
               {this.state.error.message}
             </p>
@@ -97,7 +97,7 @@ class ErrorBoundary extends Component<
               className="mt-3 rounded-lg bg-rose-600 px-3 py-1.5 text-white"
               onClick={() => location.reload()}
             >
-              Reload
+              {t("Reload")}
             </button>
           </div>
         </div>
@@ -171,7 +171,7 @@ export default function App() {
       <ConnectionBanner />
       <Suspense
         fallback={
-          <div className="p-10 text-center text-sm text-zinc-400">Loading…</div>
+          <div className="p-10 text-center text-sm text-zinc-400">{t("Loading…")}</div>
         }
       >
       <Routes>

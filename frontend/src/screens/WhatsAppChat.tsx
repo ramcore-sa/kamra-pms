@@ -214,7 +214,7 @@ export default function WhatsAppChat() {
                           : "text-zinc-400",
                       )}
                     >
-                      template · {m.template_name}
+                      {t("template")} · {m.template_name}
                     </p>
                   )}
                   <p className="whitespace-pre-wrap">{m.content}</p>
@@ -227,7 +227,7 @@ export default function WhatsAppChat() {
                     )}
                   >
                     {fmtTime(m.creation)}
-                    {m.direction === "Outbound" && ` · ${m.status}`}
+                    {m.direction === "Outbound" && ` · ${t(m.status)}`}
                   </p>
                   {m.status === "Failed" && m.error && (
                     <p className="mt-0.5 text-[11px] text-rose-200">{m.error}</p>

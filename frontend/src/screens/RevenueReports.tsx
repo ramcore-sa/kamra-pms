@@ -6,6 +6,7 @@ import { serverError } from "../lib/resource"
 import { Button } from "../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { cur, moneyLocale } from "../lib/money"
+import { useT } from "../lib/i18n"
 
 const inr = (n: number) =>
   Number(n || 0).toLocaleString(moneyLocale(), { maximumFractionDigits: 0 })
@@ -50,6 +51,7 @@ function attainTone(a: number | null) {
 // ---------------------------------------------------------------------------
 
 function BudgetVsActual() {
+  const { t } = useT()
   const property = getCurrentProperty()
   const [period, setPeriod] = useState(() =>
     new Date().toISOString().slice(0, 7),
@@ -103,10 +105,10 @@ function BudgetVsActual() {
         <div>
           <CardTitle className="flex items-center gap-2">
             <Target className="size-4 text-brand-600" aria-hidden />
-            Budget vs Actual
+            {t("Budget vs Actual")}
           </CardTitle>
           <p className="mt-0.5 text-xs text-zinc-400">
-            Month-to-date performance against your targets.
+            {t("Month-to-date performance against your targets.")}
           </p>
         </div>
         <div className="flex items-center gap-1.5">
@@ -118,7 +120,7 @@ function BudgetVsActual() {
             <ChevronRight className="size-4" />
           </Button>
           <Button variant="outline" onClick={() => setEdit((e) => !e)}>
-            {edit ? "Cancel" : data?.has_budget ? "Edit targets" : "Set targets"}
+            {edit ? t("Cancel") : data?.has_budget ? t("Edit targets") : t("Set targets")}
           </Button>
         </div>
       </CardHeader>
@@ -132,17 +134,17 @@ function BudgetVsActual() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-200 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                <th className="py-2 pr-3">Metric</th>
-                <th className="py-2 pr-3 text-right">Actual (MTD)</th>
-                <th className="py-2 pr-3 text-right">Target</th>
-                <th className="py-2 pr-3 text-right">Variance</th>
-                <th className="py-2 text-right">Attainment</th>
+                <th className="py-2 pr-3">{t("Metric")}</th>
+                <th className="py-2 pr-3 text-right">{t("Actual (MTD)")}</th>
+                <th className="py-2 pr-3 text-right">{t("Target")}</th>
+                <th className="py-2 pr-3 text-right">{t("Variance")}</th>
+                <th className="py-2 text-right">{t("Attainment")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100">
               {data.rows.map((r) => (
                 <tr key={r.key}>
-                  <td className="py-2.5 pr-3 font-medium">{r.metric}</td>
+                  <td className="py-2.5 pr-3 font-medium">{t(r.metric)}</td>
                   <td className="py-2.5 pr-3 text-right tabular-nums">
                     {fmt(r.key, r.actual)}
                   </td>
@@ -194,14 +196,13 @@ function BudgetVsActual() {
         {edit && (
           <div className="mt-3 flex justify-end">
             <Button disabled={busy} onClick={save}>
-              {busy ? "Saving..." : "Save targets"}
+              {busy ? t("Saving…") : t("Save targets")}
             </Button>
           </div>
         )}
         {data && !data.has_budget && !edit && (
           <p className="mt-3 text-xs text-zinc-400">
-            No targets set for {data.period} yet - "Set targets" to track
-            attainment.
+            {t('No targets set for {period} yet - "Set targets" to track attainment.', { period: data.period })}
           </p>
         )}
       </CardContent>
@@ -211,13 +212,16 @@ function BudgetVsActual() {
 
 // ---------------------------------------------------------------------------
 
-const BY_OPTIONS: { key: string; label: string }[] = [
-  { key: "source", label: "By source" },
-  { key: "company", label: "By company" },
-  { key: "travel_agent", label: "By travel agent" },
+// `col` heads the first column; a separate key rather than stripping "By "
+// from the label, which only works in English.
+const BY_OPTIONS: { key: string; label: string; col: string }[] = [
+  { key: "source", label: "By source", col: "Source" },
+  { key: "company", label: "By company", col: "Company" },
+  { key: "travel_agent", label: "By travel agent", col: "Travel agent" },
 ]
 
 function Contribution() {
+  const { t } = useT()
   const property = getCurrentProperty()
   const today = new Date().toISOString().slice(0, 10)
   const monthAgo = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10)
@@ -240,9 +244,9 @@ function Contribution() {
     <Card>
       <CardHeader>
         <div>
-          <CardTitle>Contribution analysis</CardTitle>
+          <CardTitle>{t("Contribution analysis")}</CardTitle>
           <p className="mt-0.5 text-xs text-zinc-400">
-            Who brings the business - revenue and share by channel.
+            {t("Who brings the business - revenue and share by channel.")}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
@@ -251,25 +255,25 @@ function Contribution() {
             className="rounded-lg border border-zinc-300 px-2 py-1.5 text-sm"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            aria-label="From"
+            aria-label={t("From")}
           />
-          <span className="text-xs text-zinc-400">to</span>
+          <span className="text-xs text-zinc-400">{t("to")}</span>
           <input
             type="date"
             className="rounded-lg border border-zinc-300 px-2 py-1.5 text-sm"
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            aria-label="To"
+            aria-label={t("To")}
           />
           <select
             className="rounded-lg border border-zinc-300 px-2.5 py-1.5 text-sm"
             value={by}
             onChange={(e) => setBy(e.target.value)}
-            aria-label="Group by"
+            aria-label={t("Group by")}
           >
             {BY_OPTIONS.map((o) => (
               <option key={o.key} value={o.key}>
-                {o.label}
+                {t(o.label)}
               </option>
             ))}
           </select>
@@ -278,24 +282,24 @@ function Contribution() {
       <CardContent>
         {data && data.rows.length === 0 && (
           <p className="py-6 text-center text-sm text-zinc-400">
-            No bookings in this window.
+            {t("No bookings in this window.")}
           </p>
         )}
         {data && data.rows.length > 0 && (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-200 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                <th className="py-2 pr-3">{BY_OPTIONS.find((o) => o.key === by)?.label.replace("By ", "")}</th>
-                <th className="py-2 pr-3 text-right">Bookings</th>
-                <th className="py-2 pr-3 text-right">Room nights</th>
-                <th className="py-2 pr-3 text-right">Revenue {cur()}</th>
-                <th className="py-2 text-right">Share</th>
+                <th className="py-2 pr-3">{t(BY_OPTIONS.find((o) => o.key === by)?.col ?? "")}</th>
+                <th className="py-2 pr-3 text-right">{t("Bookings")}</th>
+                <th className="py-2 pr-3 text-right">{t("Room nights")}</th>
+                <th className="py-2 pr-3 text-right">{t("Revenue {cur}", { cur: cur() })}</th>
+                <th className="py-2 text-right">{t("Share")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100">
               {data.rows.map((r) => (
                 <tr key={r.label}>
-                  <td className="py-2.5 pr-3 font-medium">{r.label}</td>
+                  <td className="py-2.5 pr-3 font-medium">{by === "source" ? t(r.label) : r.label}</td>
                   <td className="py-2.5 pr-3 text-right tabular-nums">{r.bookings}</td>
                   <td className="py-2.5 pr-3 text-right tabular-nums">{r.room_nights}</td>
                   <td className="py-2.5 pr-3 text-right tabular-nums">{inr(r.revenue)}</td>
@@ -315,7 +319,7 @@ function Contribution() {
             </tbody>
             <tfoot>
               <tr className="border-t border-zinc-200 font-semibold">
-                <td className="py-2 pr-3">Total</td>
+                <td className="py-2 pr-3">{t("Total")}</td>
                 <td />
                 <td />
                 <td className="py-2 pr-3 text-right tabular-nums">{inr(data.total)}</td>
@@ -330,14 +334,15 @@ function Contribution() {
 }
 
 export default function RevenueReports() {
+  const { t } = useT()
   return (
     <div className="space-y-6">
       <header>
         <h1 className="text-xl font-semibold tracking-tight">
-          Revenue Reports
+          {t("Revenue Reports")}
         </h1>
         <p className="mt-0.5 text-sm text-zinc-500">
-          Targets vs performance, and where the business comes from.
+          {t("Targets vs performance, and where the business comes from.")}
         </p>
       </header>
       <BudgetVsActual />
